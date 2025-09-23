@@ -1,15 +1,13 @@
 {
-  "name": "nodejs",
+  "name": "Medici-Society-feed-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Discord bot that reads socket feeds",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.13.11"
+    "discord.js": "^14.0.0",
+    "ws": "^8.0.0"
   }
 }
