@@ -1,14 +1,6 @@
 const { Client, GatewayIntentBits } = require("discord.js");
 const WebSocket = require("ws");
 
-// === KEEP-ALIVE SERVER FOR RENDER ===
-const http = require("http");
-const keepAliveServer = http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end("Bot is running");
-});
-keepAliveServer.listen(process.env.PORT || 3000);
-
 // Discord Client Setup
 const client = new Client({
   intents: [
@@ -25,12 +17,12 @@ const CATCH_ALL_CHANNEL_ID = "1400207538498179162";
 // Template function to format values with Discord formatting
 const formatValue = (value, format = "") => {
   if (value === undefined || value === null) return "";
-
+  
   let formatted = String(value);
   if (format.includes("bold")) formatted = `**${formatted}**`;
   if (format.includes("italic")) formatted = `*${formatted}*`;
   if (format.includes("code")) formatted = `\`${formatted}\``;
-
+  
   return formatted;
 };
 
@@ -42,7 +34,7 @@ const CHANNEL_CONFIG = [
     id: DEBUG_CHANNEL_ID,
     event: "all",
     template: (data) => {
-      return `**${data.event.toUpperCase()}** | User: ${data.user?.username || "Unknown"} | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Price: ${data.market?.price ? `$${formatPrice(data.market.price)}` : "N/A"}`;
+      return `**${data.event.toUpperCase()}** | User: ${data.user?.username || "Unknown"} | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Price: ${data.market?.price ? `${formatPrice(data.market.price)}` : "N/A"}`;
     },
     condition: (data) =>
       !["pack-opened", "market-list", "market-sold", "pack-purchased"].includes(
@@ -56,7 +48,7 @@ const CHANNEL_CONFIG = [
     id: CATCH_ALL_CHANNEL_ID,
     event: "all",
     template: (data) => {
-      return `**${data.event.toUpperCase()}** | User: **${data.user?.username || "Unknown"}** | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Mint: ${data.entity?.mintNumber || "N/A"}/${data.entity?.mintBatch || "N/A"} | Price: ${data.market?.price ? `**$${formatPrice(data.market.price)}**` : "N/A"}`;
+      return `**${data.event.toUpperCase()}** | User: **${data.user?.username || "Unknown"}** | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Mint: ${data.entity?.mintNumber || "N/A"}/${data.entity?.mintBatch || "N/A"} | Price: ${data.market?.price ? `**${formatPrice(data.market.price)}**` : "N/A"}`;
     },
     condition: (data) =>
       !["pack-opened", "market-list", "market-sold", "pack-purchased"].includes(
@@ -82,7 +74,7 @@ const CHANNEL_CONFIG = [
     id: "1400226959103099041",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **$${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -95,7 +87,7 @@ const CHANNEL_CONFIG = [
     id: "1400227005659615373",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **$${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -109,7 +101,8 @@ const CHANNEL_CONFIG = [
     id: "1400227045677731851",
     event: "market-list",
     template: (data) => {
-      return `${data.entity?.itemName || "Unknown"} listed for **$${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
+
+	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) => data.entity?.type === "pack",
   },
@@ -120,7 +113,7 @@ const CHANNEL_CONFIG = [
     id: "1400227076539158560",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **$${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
   },
@@ -131,7 +124,7 @@ const CHANNEL_CONFIG = [
     id: "1400227223658827947",
     event: "market-sold",
     template: (data) => {
-      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **$${formatPrice(data.market?.price)}**`;
+      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}**`;
     },
     condition: (data) => parseFloat(data.market?.price) >= 1,
   },
@@ -142,7 +135,7 @@ const CHANNEL_CONFIG = [
     id: "1400227260857974834",
     event: "market-sold",
     template: (data) => {
-      return `💰 **PACK SOLD** | User: **${data.user?.username || "Unknown"}** | Pack: **${data.entity?.itemName || "Unknown"}** | Price: **$${formatPrice(data.market?.price)}**`;
+      return `💰 **PACK SOLD** | User: **${data.user?.username || "Unknown"}** | Pack: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}**`;
     },
     condition: (data) => data.entity?.type === "pack",
   },
@@ -153,7 +146,7 @@ const CHANNEL_CONFIG = [
     id: "1400227291140722778",
     event: "market-sold",
     template: (data) => {
-      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **$${formatPrice(data.market?.price)}**`;
+      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}**`;
     },
     condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
   },
@@ -164,7 +157,7 @@ const CHANNEL_CONFIG = [
     id: "1400227416885952644",
     event: "market-list",
     template: (data) => {
-      return `📦 **BUNDLE LISTED** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **$${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `📦 **BUNDLE LISTED** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
@@ -175,7 +168,7 @@ const CHANNEL_CONFIG = [
     id: "1400227451585433640",
     event: "market-sold",
     template: (data) => {
-      return `💰 **BUNDLE SOLD** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **$${formatPrice(data.market?.price)}**`;
+      return `💰 **BUNDLE SOLD** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}**`;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
@@ -186,7 +179,7 @@ const CHANNEL_CONFIG = [
     id: "1400237694172532807",
     event: "market-list",
     template: (data) => {
-      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **$${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -200,7 +193,7 @@ const CHANNEL_CONFIG = [
     id: "1400238804182372382",
     event: "market-list",
     template: (data) => {
-      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **$${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -290,7 +283,10 @@ function connectWebSocket() {
             (config.event === "all" || config.event === eventName) &&
             (config.condition === null || config.condition(eventData))
           ) {
-            sendToChannel(config.id, config.template(eventData));
+            sendToChannel(
+              config.id,
+              config.template(eventData)
+            );
           }
         });
       }
@@ -326,6 +322,14 @@ client.on("ready", () => {
     }
   }, 25000);
 });
+
+// Add at the bottom of your file (before client.login)
+const http = require("http");
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("Bot is running");
+});
+server.listen(8080);
 
 client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
