@@ -27,7 +27,8 @@ const formatValue = (value, format = "") => {
 };
 
 // Template configuration for each channel
-const CHANNEL_CONFIG = [
+
+/* const CHANNEL_CONFIG = [
   // Debug channel (gets all non-filtered messages)
   {
     name: "debug",
@@ -41,6 +42,7 @@ const CHANNEL_CONFIG = [
         data.event,
       ),
   },
+  */
 
   // Catch-all channel (gets all non-filtered messages in detailed format)
   {
@@ -74,7 +76,7 @@ const CHANNEL_CONFIG = [
     id: "1400226959103099041",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -87,7 +89,7 @@ const CHANNEL_CONFIG = [
     id: "1400227005659615373",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -123,10 +125,14 @@ const CHANNEL_CONFIG = [
     name: "sold-1-usd",
     id: "1400227223658827947",
     event: "market-sold",
-    template: (data) => {
-      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}**`;
+	
+	template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
-    condition: (data) => parseFloat(data.market?.price) >= 1,
+	
+    condition: (data) => 
+	["card", "sticker"].includes(data.entity?.type) &&
+	parseFloat(data.market?.price) >= 1,
   },
 
   // Pack sales
@@ -134,9 +140,11 @@ const CHANNEL_CONFIG = [
     name: "sold-packs",
     id: "1400227260857974834",
     event: "market-sold",
-    template: (data) => {
-      return `💰 **PACK SOLD** | User: **${data.user?.username || "Unknown"}** | Pack: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}**`;
+	
+	template: (data) => {
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.type} ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
+	
     condition: (data) => data.entity?.type === "pack",
   },
 
@@ -145,9 +153,11 @@ const CHANNEL_CONFIG = [
     name: "sold-all",
     id: "1400227291140722778",
     event: "market-sold",
-    template: (data) => {
-      return `💰 **SOLD** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}**`;
+	
+	template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
+	
     condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
   },
 
@@ -157,7 +167,7 @@ const CHANNEL_CONFIG = [
     id: "1400227416885952644",
     event: "market-list",
     template: (data) => {
-      return `📦 **BUNDLE LISTED** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `📦 *${data.user?.username || "Unknown"}* listed a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - ID \`${data?.id}\``;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
@@ -168,7 +178,7 @@ const CHANNEL_CONFIG = [
     id: "1400227451585433640",
     event: "market-sold",
     template: (data) => {
-      return `💰 **BUNDLE SOLD** | User: **${data.user?.username || "Unknown"}** | Bundle: **${data.entity?.itemName || "Unknown"}** | Price: **${formatPrice(data.market?.price)}**`;
+      return `💰 *${data.user?.username || "Unknown"}* bought a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - ID \`${data?.id}\``;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
@@ -179,7 +189,7 @@ const CHANNEL_CONFIG = [
     id: "1400237694172532807",
     event: "market-list",
     template: (data) => {
-      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -193,7 +203,7 @@ const CHANNEL_CONFIG = [
     id: "1400238804182372382",
     event: "market-list",
     template: (data) => {
-      return `💸 **CHEAP LISTING** | User: **${data.user?.username || "Unknown"}** | Item: **${data.entity?.itemName || "Unknown"}** | Type: ${data.entity?.type} | Mint: #${data.entity?.mintNumber || "N/A"} (Batch ${data.entity?.mintBatch || "N/A"}) | Price: **${formatPrice(data.market?.price)}** | ID: \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
@@ -207,7 +217,7 @@ const CHANNEL_CONFIG = [
     id: "1400240719423082506",
     event: "pack-purchased",
     template: (data) => {
-      return `🛒 **STORE PURCHASE** | User: **${data.user?.username || "Unknown"}** | Pack ID: \`${data.packTemplateId}\` | Amount: ${data.amount}`;
+      return `🛒 **${data.user?.username || "Unknown"}** bought Pack ID: \`${data.packTemplateId}\` | Amount: ${data.amount}`;
     },
     condition: null,
   },
@@ -335,3 +345,4 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
