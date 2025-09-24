@@ -28,7 +28,7 @@ const formatValue = (value, format = "") => {
 
 // Template configuration for each channel
 
-/* const CHANNEL_CONFIG = [
+ const CHANNEL_CONFIG = [
   // Debug channel (gets all non-filtered messages)
   {
     name: "debug",
@@ -42,7 +42,7 @@ const formatValue = (value, format = "") => {
         data.event,
       ),
   },
-  */
+  
 
   // Catch-all channel (gets all non-filtered messages in detailed format)
   {
@@ -248,14 +248,14 @@ function connectWebSocket() {
 
   socket.on("open", () => {
     console.log("🟢 WebSocket Connected");
-    sendToDebugChannel("🟢 WebSocket Connected");
+    //sendToDebugChannel("🟢 WebSocket Connected");
     socket.send('42["join-public-feed"]');
     reconnectAttempts = 0;
   });
 
   socket.on("close", () => {
     console.log("🔴 WebSocket Disconnected");
-    sendToDebugChannel("🔴 WebSocket Disconnected");
+    //sendToDebugChannel("🔴 WebSocket Disconnected");
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       const delay = Math.min(1000 * reconnectAttempts, 5000);
       setTimeout(connectWebSocket, delay);
