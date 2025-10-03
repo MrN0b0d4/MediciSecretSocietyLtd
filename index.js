@@ -247,7 +247,18 @@ const formatValue = (value, format = "") => {
     id: "1400240719423082506",
     event: "pack-purchased",
     template: (data) => {
-      return `🛒 **${data.user?.username || "Unknown"}** bought Pack ID: \`${data.packTemplateId}\` | Amount: ${data.amount}`;
+      return `🛒 *${data.user?.username || "Unknown"}* bought ${data.amount} pack(s) \`${data.packTemplateId}\``;
+    },
+    condition: null,
+  },
+  
+  // Spinner
+  {
+    name: "spinner",
+    id: "1423670126741426176",
+    event: "spinner-feed",
+    template: (data) => {
+      return `*${data.user?.username || "Unknown"}* received ${data?.name} from spinner`;
     },
     condition: null,
   },
@@ -266,7 +277,7 @@ function formatPrice(price) {
 
 function shouldProcessEvent(eventName) {
   // Skip these events completely
-  const SKIP_EVENTS = ["join-public-feed", "spinner-feed"];
+  const SKIP_EVENTS = ["join-public-feed"];
   return !SKIP_EVENTS.includes(eventName);
 }
 // ====================================================================
