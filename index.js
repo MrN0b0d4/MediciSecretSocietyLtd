@@ -50,25 +50,31 @@ const formatValue = (value, format = "") => {
     id: CATCH_ALL_CHANNEL_ID,
     event: "all",
     template: (data) => {
-      return `**${data.event.toUpperCase()}** | User: **${data.user?.username || "Unknown"}** | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Mint: ${data.entity?.mintNumber || "N/A"}/${data.entity?.mintBatch || "N/A"} | Price: ${data.market?.price ? `**${formatPrice(data.market.price)}**` : "N/A"}`;
+      return `**${data.event.toUpperCase()}** | User: **${data.user?.username || "Unknown"}** | message: ${data}`;
     },
     condition: (data) =>
-      !["pack-opened", "market-list", "market-sold", "pack-purchased"].includes(
+      !["pack-opened", "market-list", "market-sold", "pack-purchased", "spinner-feed"].includes(
         data.event,
       ),
   },
 
   // Pack opened events (mintNumber <= 20)
+  
   {
-    name: "feed-20",
-    id: "1400226179038056508",
-    event: "pack-opened",
-    template: (data) => {
-      const card = data.cards?.[0];
-      return `**${card?.mintBatch || "N/A"}${card?.mintNumber || "N/A"}** ${card?.title || "Unknown"} opened by: ${data.user?.username || "Unknown"} - Pack number ${data?.id} - ${data?.packName} - pack number`;
-    },
-    condition: (data) => data.cards?.[0]?.mintNumber <= 20,
+  name: "feed-20",
+  id: "1400226179038056508",
+  event: "pack-opened",
+  template: (data) => {
+    const matchingCards = data.cards?.filter(card => card.mintNumber <= 20) || [];
+
+    if (matchingCards.length === 0) return null; // No matching cards
+
+    return matchingCards.map(card => 
+      `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: ${data.user?.username || "Unknown"} - Pack ID ${data?.id} - ${data?.packName}`
+    ).join("\n");
   },
+  condition: (data) => data.cards?.some(card => card.mintNumber <= 20),
+},
 
   // Market listings (cards/stickers < #20)
   {
