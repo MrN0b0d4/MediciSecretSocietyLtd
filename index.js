@@ -38,7 +38,7 @@ const formatValue = (value, format = "") => {
       return `**${data.event.toUpperCase()}** | User: ${data.user?.username || "Unknown"} | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Price: ${data.market?.price ? `${formatPrice(data.market.price)}` : "N/A"}`;
     },
     condition: (data) =>
-      !["pack-opened", "market-list", "market-sold", "pack-purchased"].includes(
+      !["pack-opened", "market-list", "market-sold", "pack-purchased", "spinner-feed"].includes(
         data.event,
       ),
   },
