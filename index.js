@@ -106,7 +106,21 @@ const formatValue = (value, format = "") => {
 
 	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
-    condition: (data) => data.entity?.type === "pack",
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) > 0.15,
+  },
+  
+  // Pack listings for less than 15 cent
+  {
+    name: "listed-packs-15c",
+    id: "1423667054317277235",
+    event: "market-list",
+    template: (data) => {
+
+	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
+    },
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) <= 0.15,
   },
 
   // All listings
@@ -115,7 +129,7 @@ const formatValue = (value, format = "") => {
     id: "1400227076539158560",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
     condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
   },
@@ -145,7 +159,22 @@ const formatValue = (value, format = "") => {
       return `*${data.user?.username || "Unknown"}* bought ${data.entity?.type} ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
-    condition: (data) => data.entity?.type === "pack",
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) > 0.11,
+  },
+  
+  // Pack sales for 10 cents
+  {
+    name: "sold-packs",
+    id: "1423666913577402398",
+    event: "market-sold",
+	
+	template: (data) => {
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.type} ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+    },
+	
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) <= 0.11,
   },
 
   // All sales (non-pack/bundle)
@@ -155,11 +184,12 @@ const formatValue = (value, format = "") => {
     event: "market-sold",
 	
 	template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - Market \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
     condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
   },
+  
 
   // Bundle listings
   {
@@ -345,4 +375,3 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
-
