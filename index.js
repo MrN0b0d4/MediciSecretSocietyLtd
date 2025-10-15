@@ -10,6 +10,67 @@ const client = new Client({
   ],
 });
 
+//filter for Kings League
+const KL_KEYWORDS = [
+  "España",
+  "Split 1",
+  "Split 3",
+  "Split 5",
+  "2023-24",
+  "2024-25",
+  "SP5"
+];
+
+const KL_PACKS = new Set([
+    "Platino 2023-24",
+    "Plata 2024-25",
+    "Oro 2024-25",
+    "Platino 2024-25",
+    "Split 1 Rewards",
+    "Platino+ 2024-25",
+    "Oro+ 2024-25",
+    "Plata+ 2024-25",
+    "Split 1 Rewards+ 2024-25+",
+    "Split 1 Campeones 2024-25",
+    "Split 5 Platino",
+    "Split 5: Oro 2024-25",
+    "Split 5 Plata",
+    "S5 Wild Plata J1 2024-25",
+    "S5 Wild Cards J1 2024-25",
+    "S5 Rewards 2024-25",
+    "S5 Wild Plata J3 2024-25",
+    "S5 Wild Cards J3 2024-25",
+    "S5 Wild Plata J4 2024-25",
+    "S5 Wild Cards J4 2024-25",
+    "S5 Wild Plata J5 2024-25",
+    "S5 Wild Cards J5 2024-25",
+    "S5 Wild Cards J6 2024-25",
+    "S5 Wild Plata J6 2024-25",
+    "S5 Wild Cards J7",
+    "S5 Wild Plata J7",
+    "S5 Wild Plata J8",
+    "S5 Wild Cards J8",
+    "S5 Wild Plata J9",
+    "S5 Wild Cards J9",
+    "S5 Wild Cards J10",
+    "S5 Wild Plata J10",
+    "S5 Wild Plata J11",
+    "S5 Wild Cards J11",
+    "Campeón: Split 3",
+    "Pack de Bienvenida+ 2024-25",
+    "Pack de Bienvenida 2024-25",
+    "Pack de Bienvenida 2023-24",
+    "Plata 2023-24",
+    "Oro 2023-24",
+    "S5 Wild Plata Play-In",
+    "S5 Wild Cards Play-In",
+    "S5 Wild Cards Cuartos",
+    "S5 Wild Plata Cuartos",
+    "S5: Campeones",
+    "Split 5 Bienvenida"
+]);
+
+
 // ======================= CHANNEL CONFIGURATION =======================
 const DEBUG_CHANNEL_ID = "1400226748611825725";
 const CATCH_ALL_CHANNEL_ID = "1400207538498179162";
@@ -58,22 +119,27 @@ const formatValue = (value, format = "") => {
       ),
   },
 
-  // Pack opened events (mintNumber <= 20)
+// ======================= CS CHANNELS =======================
+// ======================= CS CHANNELS =======================
+// ======================= CS CHANNELS =======================
+
+  // Pack opened events (mintNumber <= 30)
   
   {
-  name: "feed-20",
+  name: "feed-30",
   id: "1400226179038056508",
   event: "pack-opened",
   template: (data) => {
-    const matchingCards = data.cards?.filter(card => card.mintNumber <= 20) || [];
+    const matchingCards = data.cards?.filter(card => card.mintNumber <= 30) || [];
 
     if (matchingCards.length === 0) return null; // No matching cards
 
     return matchingCards.map(card => 
-      `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: ${data.user?.username || "Unknown"} - Pack ID ${data?.id} - ${data?.packName}`
+      `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: *${data.user?.username || "Unknown"}* - Pack ID ${data?.id} - ${data?.packName}`
     ).join("\n");
   },
-  condition: (data) => data.cards?.some(card => card.mintNumber <= 20),
+  condition: (data) => data.cards?.some(card => card.mintNumber <= 30) &&
+  !KL_PACKS.has(data?.packName),
 },
 
   // Market listings (cards/stickers < #20)
@@ -84,9 +150,15 @@ const formatValue = (value, format = "") => {
     template: (data) => {
       return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
-    condition: (data) =>
-      ["card", "sticker"].includes(data.entity?.type) &&
-      data.entity?.mintNumber < 20,
+//    condition: (data) =>
+//      ["card", "sticker"].includes(data.entity?.type) &&
+//      data.entity?.mintNumber < 20,
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return ["card", "sticker"].includes(data.entity?.type) &&
+    data.entity?.mintNumber < 20 &&
+	!KL_KEYWORDS.some(kw => name.includes(kw));
+	}		  
   },
 
   // Market listings (cards/stickers < #100)
@@ -97,10 +169,17 @@ const formatValue = (value, format = "") => {
     template: (data) => {
       return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
-    condition: (data) =>
-      ["card", "sticker"].includes(data.entity?.type) &&
-      data.entity?.mintNumber < 101 &&
-      data.entity?.mintNumber > 20,
+    //condition: (data) =>
+    //  ["card", "sticker"].includes(data.entity?.type) &&
+    //  data.entity?.mintNumber < 101 &&
+    //  data.entity?.mintNumber > 20,
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return ["card", "sticker"].includes(data.entity?.type) &&
+    data.entity?.mintNumber < 101 &&
+    data.entity?.mintNumber > 20 &&
+	!KL_KEYWORDS.some(kw => name.includes(kw));
+	}		  
   },
 
   // Pack listings
@@ -113,7 +192,8 @@ const formatValue = (value, format = "") => {
 	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) => data.entity?.type === "pack" &&
-	parseFloat(data.market?.price) > 0.15,
+	parseFloat(data.market?.price) > 0.15 &&
+	!KL_PACKS.has(data.entity?.itemName),
   },
   
   // Pack listings for less than 15 cent
@@ -126,7 +206,8 @@ const formatValue = (value, format = "") => {
 	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
     },
     condition: (data) => data.entity?.type === "pack" &&
-	parseFloat(data.market?.price) <= 0.15,
+	parseFloat(data.market?.price) <= 0.15 &&
+	!KL_PACKS.has(data.entity?.itemName),
   },
 
   // All listings
@@ -137,7 +218,13 @@ const formatValue = (value, format = "") => {
     template: (data) => {
       return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
     },
-    condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
+    //condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return !["pack", "bundle"].includes(data.entity?.type) &&
+	!KL_KEYWORDS.some(kw => name.includes(kw));
+	}		
+	
   },
 
   // Sales ≥ $1
@@ -150,9 +237,17 @@ const formatValue = (value, format = "") => {
       return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
-    condition: (data) => 
-	["card", "sticker"].includes(data.entity?.type) &&
-	parseFloat(data.market?.price) >= 1,
+    //condition: (data) => 
+	//["card", "sticker"].includes(data.entity?.type) &&
+	//parseFloat(data.market?.price) >= 1,
+	
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return ["card", "sticker"].includes(data.entity?.type) &&
+	parseFloat(data.market?.price) >= 1 &&
+	!KL_KEYWORDS.some(kw => name.includes(kw));
+	}		
+	
   },
 
   // Pack sales
@@ -162,11 +257,12 @@ const formatValue = (value, format = "") => {
     event: "market-sold",
 	
 	template: (data) => {
-      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.type} ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
     condition: (data) => data.entity?.type === "pack" &&
-	parseFloat(data.market?.price) > 0.11,
+	parseFloat(data.market?.price) > 0.11 &&
+	!KL_PACKS.has(data.entity?.itemName),
   },
   
   // Pack sales for 10 cents
@@ -176,11 +272,12 @@ const formatValue = (value, format = "") => {
     event: "market-sold",
 	
 	template: (data) => {
-      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.type} ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
     condition: (data) => data.entity?.type === "pack" &&
-	parseFloat(data.market?.price) <= 0.11,
+	parseFloat(data.market?.price) <= 0.11 &&
+	!KL_PACKS.has(data.entity?.itemName),
   },
 
   // All sales (non-pack/bundle)
@@ -193,9 +290,178 @@ const formatValue = (value, format = "") => {
       return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
     },
 	
-    condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
+    //condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
+    condition: (data) => {
+		const name = data.entity?.itemName || "";
+		return !["pack", "bundle"].includes(data.entity?.type) &&
+		!KL_KEYWORDS.some(kw => name.includes(kw));
+	}	
+	
+	
+  },
+ 
+// ======================= Kings League  CHANNELS =======================
+// ======================= Kings League  CHANNELS =======================
+// ======================= Kings League  CHANNELS =======================
+ 
+
+  // KL Pack opened events (mintNumber <= 50)
+  
+  {
+  name: "kl-feed-50",
+  id: "1428002013798727791",
+  event: "pack-opened",
+  template: (data) => {
+    const matchingCards = data.cards?.filter(card => card.mintNumber <= 50) || [];
+
+    if (matchingCards.length === 0) return null; // No matching cards
+
+    return matchingCards.map(card => 
+      `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: *${data.user?.username || "Unknown"}* - Pack ID ${data?.id} - ${data?.packName}`
+    ).join("\n");
+  },
+  condition: (data) => data.cards?.some(card => card.mintNumber <= 50) &&
+  KL_PACKS.has(data?.packName),
+},
+
+  // KL Market listings (cards/stickers < #150)
+  {
+    name: "kl-listed-150",
+    id: "1428000363742629992",
+    event: "market-list",
+    template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+    },
+//    condition: (data) =>
+//      ["card", "sticker"].includes(data.entity?.type) &&
+//      data.entity?.mintNumber < 20,
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return ["card", "sticker"].includes(data.entity?.type) &&
+    data.entity?.mintNumber < 151 &&
+	KL_KEYWORDS.some(kw => name.includes(kw));
+	}		  
+  },
+
+  // KL Pack listings
+  {
+    name: "kl-listed-packs",
+    id: "1428001329741041735",
+    event: "market-list",
+    template: (data) => {
+
+	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
+    },
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) > 0.15 &&
+	KL_PACKS.has(data.entity?.itemName),
   },
   
+  // KL Pack listings for less than 15 cent
+  {
+    name: "kl-listed-packs-15c",
+    id: "1428001258446520350",
+    event: "market-list",
+    template: (data) => {
+
+	      return `${data.entity?.itemName || "Unknown"} listed for **${formatPrice(data.market?.price)}** by *${data.user?.username || "Unknown"}* - ${data.entity?.id} - Market \`${data.market?.id}\``;
+    },
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) <= 0.15 &&
+	KL_PACKS.has(data.entity?.itemName),
+  },
+
+  // KL All listings
+  {
+    name: "kl-listed-all-cards",
+    id: "1428001382396334110",
+    event: "market-list",
+    template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+    },
+    //condition: (data) => !["pack", "bundle"].includes(data.entity?.type),
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return !["pack", "bundle"].includes(data.entity?.type) &&
+	KL_KEYWORDS.some(kw => name.includes(kw));
+	}		
+	
+  },
+
+  // KL Sales ≥ $5
+  {
+    name: "kl-sold-5-usd",
+    id: "1428001770810118164",
+    event: "market-sold",
+	
+	template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+    },
+	
+    //condition: (data) => 
+	//["card", "sticker"].includes(data.entity?.type) &&
+	//parseFloat(data.market?.price) >= 1,
+	
+    condition: (data) => {
+	const name = data.entity?.itemName || "";
+	return ["card", "sticker"].includes(data.entity?.type) &&
+	parseFloat(data.market?.price) >= 5 &&
+	KL_KEYWORDS.some(kw => name.includes(kw));
+	}		
+	
+  },
+
+  // KL Pack sales
+  {
+    name: "kl-sold-packs",
+    id: "1428001821779300532",
+    event: "market-sold",
+	
+	template: (data) => {
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+    },
+	
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) > 0.11 &&
+	KL_PACKS.has(data.entity?.itemName),
+  },
+  
+  // KL Pack sales for 10 cents
+  {
+    name: "kl-sold-packs",
+    id: "1428001877504823376",
+    event: "market-sold",
+	
+	template: (data) => {
+      return `*${data.user?.username || "Unknown"}* bought ${data.entity?.itemName || "Unknown"} for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+    },
+	
+    condition: (data) => data.entity?.type === "pack" &&
+	parseFloat(data.market?.price) <= 0.11 &&
+	KL_PACKS.has(data.entity?.itemName),
+  },
+
+    // KL sales all
+  {
+    name: "KL-sold-all",
+    id: "1428001908781748344",
+    event: "market-sold",
+	
+	template: (data) => {
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} bought by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id}`;
+    },
+	
+    condition: (data) => {
+		const name = data.entity?.itemName || "";
+		return !["pack", "bundle"].includes(data.entity?.type) &&
+		KL_KEYWORDS.some(kw => name.includes(kw));
+	}
+  },
+
+// <<<<<--- Kings League 
+
+
+
 
   // Bundle listings
   {
