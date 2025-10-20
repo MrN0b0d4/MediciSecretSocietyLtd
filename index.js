@@ -35,7 +35,9 @@ const KL_PACKS = new Set([
     "Split 5 Platino",
     "Split 5: Oro 2024-25",
     "Split 5 Plata",
-    "S5 Wild Plata J1 2024-25",
+	"Split 5 Rewards",
+	"Split 5 Oro",
+	"S5 Wild Plata J1 2024-25",
     "S5 Wild Cards J1 2024-25",
     "S5 Rewards 2024-25",
     "S5 Wild Plata J3 2024-25",
@@ -658,3 +660,4 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
