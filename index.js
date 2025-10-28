@@ -20,7 +20,7 @@ const KL_KEYWORDS = [
   "2024-25",
   "SP5",
   "Kings Cup",
-	"Queens Cup"
+  "Queens Cup"
 ];
 
 const KL_PACKS = new Set([
@@ -77,9 +77,9 @@ const KL_PACKS = new Set([
 	"Kings Cup Italy Reward",
 	"Kings Cup Mexico Reward",
 	"Kings Cup MENA Reward",
-	"Kings Cup Brazil Reward",
+	"Kings Cup Brazil Rewards",
 	"Queens Cup Spain Reward",
-	"Queens Cup Mexico Reward",
+	"Queens Cup Mexico Reward"
 ]);
 
 
@@ -670,5 +670,6 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
