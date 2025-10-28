@@ -18,7 +18,9 @@ const KL_KEYWORDS = [
   "Split 5",
   "2023-24",
   "2024-25",
-  "SP5"
+  "SP5",
+  "Kings Cup",
+	"Queens Cup"
 ];
 
 const KL_PACKS = new Set([
@@ -69,7 +71,15 @@ const KL_PACKS = new Set([
     "S5 Wild Cards Cuartos",
     "S5 Wild Plata Cuartos",
     "S5: Campeones",
-    "Split 5 Bienvenida"
+    "Split 5 Bienvenida",
+	"Kings Cup Spain Reward",
+	"Kings Cup Germany Reward",
+	"Kings Cup Italy Reward",
+	"Kings Cup Mexico Reward",
+	"Kings Cup MENA Reward",
+	"Kings Cup Brazil Reward",
+	"Queens Cup Spain Reward",
+	"Queens Cup Mexico Reward",
 ]);
 
 
@@ -660,4 +670,5 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
