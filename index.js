@@ -79,7 +79,23 @@ const KL_PACKS = new Set([
 	"Kings Cup MENA Reward",
 	"Kings Cup Brazil Rewards",
 	"Queens Cup Spain Reward",
-	"Queens Cup Mexico Reward"
+	"Queens Cup Mexico Reward",
+	"Kings Cup Spain Prestige",
+	"Kings Cup Germany Prestige",
+	"Kings Cup Italy Prestige",
+	"Kings Cup Mexico Prestige",
+	"Kings Cup MENA Prestige",
+	"Kings Cup Brazil Prestige",
+	"Queens Cup Spain Prestige",
+	"Queens Cup Mexico Prestige",
+	"Kings Cup Spain",
+	"Kings Cup Germany",
+	"Kings Cup Italy",
+	"Kings Cup Mexico",
+	"Kings Cup MENA",
+	"Kings Cup Brazil",
+	"Queens Cup Spain",
+	"Queens Cup Mexico"
 ]);
 
 
@@ -336,9 +352,9 @@ const formatValue = (value, format = "") => {
   KL_PACKS.has(data?.packName),
 },
 
-  // KL Market listings (cards/stickers < #150)
+  // KL Market listings (cards/stickers < #200)
   {
-    name: "kl-listed-150",
+    name: "kl-listed-200",
     id: "1428000363742629992",
     event: "market-list",
     template: (data) => {
@@ -350,7 +366,7 @@ const formatValue = (value, format = "") => {
     condition: (data) => {
 	const name = data.entity?.itemName || "";
 	return ["card", "sticker"].includes(data.entity?.type) &&
-    data.entity?.mintNumber < 151 &&
+    data.entity?.mintNumber < 201 &&
 	KL_KEYWORDS.some(kw => name.includes(kw));
 	}		  
   },
@@ -670,6 +686,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
