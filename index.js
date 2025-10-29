@@ -24,7 +24,8 @@ const KL_KEYWORDS = [
 ];
 
 const KL_HERO = [
-  " Hero "
+  " Hero ",
+  "2025 Art Series Team Kit"
 ];
 
 const KL_MYTH = [
@@ -552,6 +553,20 @@ const formatValue = (value, format = "") => {
       parseFloat(data.market?.price) <= 0.51,
   },
 
+  // Listings < #10 and ≤ $4
+  {
+    name: "list10-less-4",
+    id: "1433181458738053273",
+    event: "market-list",
+    template: (data) => {
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+    },
+    condition: (data) =>
+      ["card", "sticker"].includes(data.entity?.type) &&
+      data.entity?.mintNumber < 10 &&
+      parseFloat(data.market?.price) <= 4.01,
+  },
+	 
   // Listings < #100 and ≤ $0.15
   {
     name: "list100-less-15",
@@ -768,6 +783,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
