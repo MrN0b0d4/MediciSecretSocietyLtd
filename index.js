@@ -581,9 +581,9 @@ const formatValue = (value, format = "") => {
       parseFloat(data.market?.price) <= 0.15,
   },
   
-    // KL Listings < #150 and ≤ $0.50
+    // KL Listings < #150 and ≤ $0.40
   {
-    name: "kl-list150-less-50",
+    name: "kl-list150-less-40",
     id: "1433055346578161756",
     event: "market-list",
     template: (data) => {
@@ -594,15 +594,15 @@ const formatValue = (value, format = "") => {
 	const name = data.entity?.itemName || "";
 	return !["pack", "bundle"].includes(data.entity?.type) &&
 	data.entity?.mintNumber < 150 &&
-    parseFloat(data.market?.price) <= 0.51 &&
+    parseFloat(data.market?.price) <= 0.41 &&
 	KL_KEYWORDS.some(kw => name.includes(kw));
 	}	
 	  
   },
   
-    // KL Listings HERO and ≤ $40
+    // KL Listings HERO and ≤ $20
   {
-    name: "kl-list-hero-less-40usd",
+    name: "kl-list-hero-less-20usd",
     id: "1433055528900235324",
     event: "market-list",
     template: (data) => {
@@ -613,30 +613,30 @@ const formatValue = (value, format = "") => {
 	const name = data.entity?.itemName || "";
 	return !["pack", "bundle"].includes(data.entity?.type) &&
 	//data.entity?.mintNumber < 150 &&
-    parseFloat(data.market?.price) <= 40 &&
+    parseFloat(data.market?.price) <= 20 &&
 	KL_HERO.some(kw => name.includes(kw));
 	}	
 	  
   },
   
     // KL Listings MYTH and ≤ $0.91
-  {
-    name: "kl-list-myth-less-90",
-    id: "1433055827375296513",
-    event: "market-list",
-    template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
-    },
+//  {
+//    name: "kl-list-myth-less-90",
+//    id: "1433055827375296513",
+//    event: "market-list",
+//    template: (data) => {
+//      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+//    },
 	  
-	condition: (data) => {
-	const name = data.entity?.itemName || "";
-	return !["pack", "bundle"].includes(data.entity?.type) &&
-	//data.entity?.mintNumber < 150 &&
-    parseFloat(data.market?.price) <= 0.91 &&
-	KL_MYTH.some(kw => name.includes(kw));
-	}	
+//	condition: (data) => {
+//	const name = data.entity?.itemName || "";
+//	return !["pack", "bundle"].includes(data.entity?.type) &&
+//	//data.entity?.mintNumber < 150 &&
+ //   parseFloat(data.market?.price) <= 0.91 &&
+//	KL_MYTH.some(kw => name.includes(kw));
+//	}	
 	  
-  },
+//  },
 
   // Store purchases
   {
@@ -783,6 +783,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
