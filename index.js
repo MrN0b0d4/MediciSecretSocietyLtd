@@ -20,7 +20,8 @@ const KL_KEYWORDS = [
   "2024-25",
   "SP5",
   "Kings Cup",
-  "Queens Cup"
+  "Queens Cup",
+	"KWC Nations"
 ];
 
 const KL_HERO = [
@@ -104,7 +105,24 @@ const KL_PACKS = new Set([
 	"Kings Cup MENA",
 	"Kings Cup Brazil",
 	"Queens Cup Spain",
-	"Queens Cup Mexico"
+	"Queens Cup Mexico",
+	     "Queens Cup Mexico Reward",
+     "Queens Cup Spain Reward",
+     "Kings Cup MENA Reward",
+     "Kings Cup Mexico Reward",
+     "Kings Cup Brazil Rewards",
+     "Kings Cup Germany Reward",
+     "Kings Cup Italy Reward",
+     "Kings Cup Spain Reward",
+     "Kings Cup Spain Coentrão Prestige",
+     "Kings Cup Spain Coentrão",
+	 "Kings Cup Germany Prestige",
+     "Kings Cup Germany",
+     "Kings Cup America Champions",
+     "Kings Cup Europe Champions",
+     "Queens Cup Champions",
+     "Kings World Cup Nations: Prestige",
+     "Kings World Cup Nations"
 ]);
 
 
@@ -783,6 +801,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
