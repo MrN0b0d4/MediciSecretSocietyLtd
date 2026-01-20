@@ -122,7 +122,8 @@ const KL_PACKS = new Set([
      "Kings Cup Europe Champions",
      "Queens Cup Champions",
      "Kings World Cup Nations: Prestige",
-     "Kings World Cup Nations"
+     "Kings World Cup Nations",
+	"Kings World Cup Nations: Reward"
 ]);
 
 
@@ -801,6 +802,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
