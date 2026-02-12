@@ -204,7 +204,7 @@
     <div>
       <h1>Single User <span class="accent">Dashboard</span> <span id="weekendIndicator" class="weekend" style="display:none;">(Weekend Mode)</span></h1>
       <div class="auto-refresh">
-        <input type="checkbox" id="autoRefresh" />
+        <input type="checkbox" id="autoRefresh" checked />
         <label for="autoRefresh">Auto-refresh (10s)</label>
       </div>
     </div>
@@ -337,24 +337,52 @@
     let refreshInterval = null;
     let lastData = null;
 
-    // Formatting functions
+    // ============== FIXED DATE FORMATTING ==============
+    // Uses your browser's local settings - no more American dates!
+    
     function formatTime(iso) {
       if (!iso) return '—';
       try {
         const d = new Date(iso);
         if (isNaN(d)) return '—';
+        // Uses your computer's date and time format (DD/MM/YYYY or MM/DD/YYYY, 12h or 24h)
         return d.toLocaleString();
       } catch {
         return '—';
       }
     }
 
-    function formatUTC(iso) {
+    function formatTimeShort(iso) {
       if (!iso) return '—';
       try {
         const d = new Date(iso);
         if (isNaN(d)) return '—';
-        return d.toUTCString().replace('GMT', 'UTC');
+        // Just time in your local format
+        return d.toLocaleTimeString();
+      } catch {
+        return '—';
+      }
+    }
+
+    function formatDateShort(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d)) return '—';
+        // Just date in your local format
+        return d.toLocaleDateString();
+      } catch {
+        return '—';
+      }
+    }
+
+    function formatWindowTime(date) {
+      if (!date) return '—';
+      try {
+        const d = new Date(date);
+        if (isNaN(d)) return '—';
+        // Show only time for today's window (cleaner)
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       } catch {
         return '—';
       }
@@ -423,10 +451,10 @@
 
       // Basic info
       document.getElementById('userId').textContent = data.userId || 'Not set';
-      document.getElementById('tokenStatus').textContent = data.jwtToken ? 'Valid' : 'Missing';
+      document.getElementById('tokenStatus').textContent = data.jwtToken ? '✅ Valid' : '❌ Missing';
       document.getElementById('lastRefresh').textContent = formatTime(data.lastRefresh);
       
-      // Active window
+      // Active window - Show ONLY times, no dates (cleaner)
       const now = new Date();
       const start = data._effectiveStartUTC ? new Date(data._effectiveStartUTC) : null;
       const end = data._effectiveEndUTC ? new Date(data._effectiveEndUTC) : null;
@@ -435,11 +463,11 @@
         const isActive = now >= start && now <= end;
         document.getElementById('activeWindowStatus').textContent = isActive ? '✅ Active' : '⏸️ Inactive';
         document.getElementById('windowTimes').textContent = 
-          `${formatTime(start)} - ${formatTime(end)}`;
+          `${formatWindowTime(start)} — ${formatWindowTime(end)}`;
       }
 
       // Weekend mode
-      const isWeekend = data._isWeekend;
+      const isWeekend = now.getUTCDay() === 0 || now.getUTCDay() === 6;
       document.getElementById('weekendMode').textContent = isWeekend ? '✅ Yes' : 'No';
       document.getElementById('weekendIndicator').style.display = isWeekend ? 'inline' : 'none';
     }
@@ -475,7 +503,7 @@
       
       if (start) {
         const ach1 = new Date(start.getTime() + 5 * 60000);
-        const ach2 = new Date(ach1.getTime() + 5 * 60 * 60000);
+        const ach2 = new Date(ach1.getTime() + 6 * 60 * 60000); // +6 hours
         
         document.getElementById('ach1Time').textContent = formatTime(ach1);
         document.getElementById('ach1Countdown').textContent = timeUntil(ach1);
@@ -498,12 +526,13 @@
         return;
       }
       
-      const html = logs.map(log => `
-        <div class="log-entry">
-          <span class="log-time">[${new Date(log.timestamp).toLocaleTimeString()}]</span>
+      const html = logs.map(log => {
+        const time = new Date(log.timestamp).toLocaleTimeString();
+        return `<div class="log-entry">
+          <span class="log-time">[${time}]</span>
           ${log.message}
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
       
       container.innerHTML = html;
       container.scrollTop = 0;
@@ -518,18 +547,10 @@
         ]);
         
         if (userData) {
-          // Store for comparison
           lastData = userData;
-          
-          // Update all sections
           updateUserStatus(userData);
           updateStatistics(userData);
           updateSchedule(userData);
-          
-          // Check if it's weekend
-          const now = new Date();
-          const isWeekend = now.getUTCDay() === 0 || now.getUTCDay() === 6;
-          userData._isWeekend = isWeekend;
         }
         
         updateActivityLogs(activityLogs);
@@ -546,43 +567,32 @@
       try {
         await performAction('/api/refresh');
         await updateAll();
-      } catch (error) {
-        // Error already shown by performAction
-      }
+      } catch (error) {}
     });
     
     document.getElementById('spinBtn').addEventListener('click', async () => {
       try {
         await performAction('/api/spin');
         await updateAll();
-      } catch (error) {
-        // Error already shown by performAction
-      }
+      } catch (error) {}
     });
     
     document.getElementById('claimBtn').addEventListener('click', async () => {
       try {
         await performAction('/api/claim-achievements');
         await updateAll();
-      } catch (error) {
-        // Error already shown by performAction
-      }
+      } catch (error) {}
     });
     
     document.getElementById('fundsBtn').addEventListener('click', async () => {
       try {
         await performAction('/api/check-funds');
         await updateAll();
-      } catch (error) {
-        // Error already shown by performAction
-      }
+      } catch (error) {}
     });
     
     document.getElementById('clearLogsBtn').addEventListener('click', () => {
-      if (confirm('Clear all activity logs?')) {
-        // This would need a backend endpoint to clear logs
-        alert('Log clearing not implemented in this version');
-      }
+      alert('Log clearing not implemented in this version');
     });
     
     // Auto-refresh toggle
@@ -597,8 +607,9 @@
       }
     });
 
-    // Initial load
+    // Initial load with auto-refresh ON
     updateAll();
+    refreshInterval = setInterval(updateAll, 10000);
   </script>
 </body>
 </html>

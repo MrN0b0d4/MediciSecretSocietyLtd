@@ -704,12 +704,17 @@ function scheduleDailyPlan() {
   const now = new Date();
   const { effectiveStart, effectiveEnd } = computeEffectiveWindow(now);
   
-  // Schedule achievements
-  const claim1 = addMinutes(effectiveStart, 5);
-  const claim2 = addMinutes(claim1, 5 * 60);
-  const claim3 = addMinutes(effectiveEnd, -5);
+  // Store the effective window (used by isWithinActiveWindow)
+  userData._effectiveStartUTC = effectiveStart;
+  userData._effectiveEndUTC = effectiveEnd;
   
-  // Schedule claim timers
+  logActivity(`📅 Daily plan: ${effectiveStart.toUTCString()} to ${effectiveEnd.toUTCString()}`);
+  
+  // Schedule achievements - EXACT same as multi-user version
+  const claim1 = addMinutes(effectiveStart, 5);        // Start + 5m
+  const claim2 = addMinutes(claim1, 6 * 60);          // +6 hours from claim1
+  const claim3 = addMinutes(effectiveEnd, -5);        // End - 5m
+  
   const scheduleClaim = (when, label) => {
     const delay = when.getTime() - Date.now();
     if (delay <= 0) {
@@ -733,16 +738,13 @@ function scheduleDailyPlan() {
   };
   
   scheduleClaim(claim1, 'Achievements #1 (Start+5m)');
-  scheduleClaim(claim2, 'Achievements #2 (+5h)');
+  scheduleClaim(claim2, 'Achievements #2 (+6h)');
   scheduleClaim(claim3, 'Achievements #3 (End-5m)');
   
-  // ============== FIXED: Schedule rollover for TOMORROW ==============
-  // Create a date object for tomorrow at the same effectiveEnd time
+  // Schedule rollover for TOMORROW - EXACT same as multi-user version
   const tomorrow = new Date(now);
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   
-  // Recompute tomorrow's window to get the correct start time
-  // But we just need to schedule at roughly the same time tomorrow
   const tomorrowStart = utcDateAt(
     effectiveStart.getUTCHours(),
     effectiveStart.getUTCMinutes(),
@@ -750,7 +752,6 @@ function scheduleDailyPlan() {
     tomorrow
   );
   
-  // Schedule rollover 2 minutes after tomorrow's start
   const rolloverTime = addMinutes(tomorrowStart, 2);
   const rolloverDelay = Math.max(rolloverTime.getTime() - Date.now(), 1000);
   
@@ -760,7 +761,6 @@ function scheduleDailyPlan() {
   }, rolloverDelay);
   
   logActivity(`⏰ Daily rollover scheduled for ${rolloverTime.toUTCString()}`);
-  // ===================================================================
 }
 
 // Continuous operations
