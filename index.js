@@ -542,8 +542,8 @@ const formatValue = (value, format = "") => {
     id: "1400227416885952644",
     event: "market-list",
     template: (data) => {
-      return `📦 *${data.user?.username || "Unknown"}* listed a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](<https://kolex.gg/bundles/view/${data.entity?.id}>) - ID \`${data?.id}\``;
-    },
+    return `📦 *${data.user?.username || "Unknown"}* listed a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](<https://kolex.gg/bundles/view/${data.entity?.id}>) - ID \`${data?.id}\`  - ID \`${data.market?.id}\``;
+	 },
     condition: (data) => data.entity?.type === "bundle",
   },
 
@@ -802,6 +802,7 @@ client.login(process.env.TOKEN).catch((err) => {
   console.error("Login error:", err);
   process.exit(1);
 });
+
 
 
 
