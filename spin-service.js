@@ -129,28 +129,26 @@ function logActivity(message) {
   console.log(`[${timestamp}] ${message}`);
 }
 
+const { HttpsProxyAgent } = require('https-proxy-agent');
+
 // Get proxy configuration for axios
 function getAxiosConfig() {
   const config = {
-    timeout: 15000,
+    timeout: 30000, // Increase timeout to 30 seconds
     httpsAgent: new (require('https').Agent)({
-      rejectUnauthorized: false  // Sometimes needed for proxies
+      rejectUnauthorized: false,
+      keepAlive: true
     })
   };
   
   if (PROXY_CONFIG.enabled && PROXY_CONFIG.host) {
-    config.proxy = {
-      host: PROXY_CONFIG.host,
-      port: PROXY_CONFIG.port,
-      protocol: 'http',
-      ...(PROXY_CONFIG.username ? {
-        auth: {
-          username: PROXY_CONFIG.username,
-          password: PROXY_CONFIG.password
-        }
-      } : {})
-    };
-    console.log(`🔌 Proxy enabled: ${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`);
+    // Use proxy agent instead of axios proxy config
+    const proxyUrl = `http://${PROXY_CONFIG.username}:${PROXY_CONFIG.password}@${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`;
+    config.httpsAgent = new HttpsProxyAgent(proxyUrl);
+    config.httpAgent = new HttpsProxyAgent(proxyUrl);
+    config.proxy = false; // Disable axios proxy, use agent instead
+    
+    console.log(`🔌 Proxy enabled via agent: ${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`);
   }
   
   return config;
