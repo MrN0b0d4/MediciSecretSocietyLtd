@@ -22,6 +22,7 @@ const CONFIG = {
   BASE_URL_PACKS: process.env.BASE_URL_PACKS,
   BASE_URL_SPINNER: process.env.BASE_URL_SPINNER,
   BASE_URL_OPENPACK: process.env.BASE_URL_OPENPACK,
+  BASE_URL_CHECKPACKS: process.env.BASE_URL_CHECKPACKS,
 
 };
 
@@ -662,7 +663,7 @@ async function getUserPacks() {
   }
   
   const headers = { 'x-user-jwt': userData.jwtToken };
-  const url = `${CONFIG.BASE_URL_PACKS}/user?page=1&categoryIds=1`;
+  const url = `${CONFIG.BASE_URL_CHECKPACKS}`;
   
   return await makeAPIRequest(url, 'GET', headers);
 }
