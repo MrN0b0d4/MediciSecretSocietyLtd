@@ -688,6 +688,7 @@ async function openPack(packId) {
 // ======================= SCHEDULING & INITIALIZATION =======================
 
 // Schedule daily plan
+// Schedule daily plan
 function scheduleDailyPlan() {
   // Clear existing timers
   if (userData._achTimers) {
@@ -735,14 +736,31 @@ function scheduleDailyPlan() {
   scheduleClaim(claim2, 'Achievements #2 (+5h)');
   scheduleClaim(claim3, 'Achievements #3 (End-5m)');
   
-  // Schedule rollover for next day
-  const rolloverTime = addMinutes(effectiveEnd, 2);
+  // ============== FIXED: Schedule rollover for TOMORROW ==============
+  // Create a date object for tomorrow at the same effectiveEnd time
+  const tomorrow = new Date(now);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  
+  // Recompute tomorrow's window to get the correct start time
+  // But we just need to schedule at roughly the same time tomorrow
+  const tomorrowStart = utcDateAt(
+    effectiveStart.getUTCHours(),
+    effectiveStart.getUTCMinutes(),
+    0, 0,
+    tomorrow
+  );
+  
+  // Schedule rollover 2 minutes after tomorrow's start
+  const rolloverTime = addMinutes(tomorrowStart, 2);
   const rolloverDelay = Math.max(rolloverTime.getTime() - Date.now(), 1000);
   
   userData._dailyRolloverTimer = setTimeout(() => {
     logActivity('🔁 Daily rollover - scheduling next day');
     scheduleDailyPlan();
   }, rolloverDelay);
+  
+  logActivity(`⏰ Daily rollover scheduled for ${rolloverTime.toUTCString()}`);
+  // ===================================================================
 }
 
 // Continuous operations
