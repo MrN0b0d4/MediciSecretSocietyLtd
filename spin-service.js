@@ -40,12 +40,12 @@ let userData = {
   dailyAchievementsDone: false,
   
   // Scheduling parameters (weekday)
-  dayStart: '07:40',    // CET = UTC+1 (06:40 UTC)
+  dayStart: '07:30',    // CET = UTC+1 (06:40 UTC)
   dayEnd: '23:59',      // CET = UTC+1 (22:59 UTC)
-  jitter: 22,           // minutes
+  jitter: 12,           // minutes
   baseInterval: 30,     // minutes
   randomScale1: 0,      // minutes
-  randomScale2: 21,     // minutes
+  randomScale2: 8,     // minutes
   
   // Weekend parameters
   weekendDayStart: '08:44',    // CET = UTC+1 (07:44 UTC)
@@ -53,7 +53,7 @@ let userData = {
   weekendJitter: 42,           // minutes
   weekendBaseInterval: 30,     // minutes
   weekendRandomScale1: 5,      // minutes
-  weekendRandomScale2: 41,     // minutes
+  weekendRandomScale2: 33,     // minutes
   
   // Internal state
   _effectiveStartUTC: null,
@@ -74,8 +74,6 @@ const PRIZE_MAP = {
   11754: '1,000,000 Silvercoins',
   11753: '100,000 Silvercoins',
   11752: '2,500 Silvercoins',
-  11782: 'Core Refresh Pack',
-  11881: 'IEM Krakow: Players Pack',
   11751: '1,000 Silvercoins'
 };
 
@@ -688,7 +686,6 @@ async function openPack(packId) {
 // ======================= SCHEDULING & INITIALIZATION =======================
 
 // Schedule daily plan
-// Schedule daily plan
 function scheduleDailyPlan() {
   // Clear existing timers
   if (userData._achTimers) {
@@ -710,10 +707,10 @@ function scheduleDailyPlan() {
   
   logActivity(`📅 Daily plan: ${effectiveStart.toUTCString()} to ${effectiveEnd.toUTCString()}`);
   
-  // Schedule achievements - EXACT same as multi-user version
-  const claim1 = addMinutes(effectiveStart, 5);        // Start + 5m
+  // Schedule achievements
+  const claim1 = addMinutes(effectiveStart, 25);        // Start + 25m
   const claim2 = addMinutes(claim1, 6 * 60);          // +6 hours from claim1
-  const claim3 = addMinutes(effectiveEnd, -5);        // End - 5m
+  const claim3 = addMinutes(effectiveEnd, -15);        // End - 15m
   
   const scheduleClaim = (when, label) => {
     const delay = when.getTime() - Date.now();
@@ -737,11 +734,11 @@ function scheduleDailyPlan() {
     logActivity(`⏰ ${label} scheduled for ${when.toUTCString()}`);
   };
   
-  scheduleClaim(claim1, 'Achievements #1 (Start+5m)');
+  scheduleClaim(claim1, 'Achievements #1 (Start+25m)');
   scheduleClaim(claim2, 'Achievements #2 (+6h)');
-  scheduleClaim(claim3, 'Achievements #3 (End-5m)');
+  scheduleClaim(claim3, 'Achievements #3 (End-15m)');
   
-  // Schedule rollover for TOMORROW - EXACT same as multi-user version
+  // Schedule rollover for TOMORROW
   const tomorrow = new Date(now);
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   
@@ -776,12 +773,12 @@ function startContinuousOperations() {
     }
   }, 30000);
   
-  // Funds check during active windows - every 2 hours
+  // Funds check during active windows - every 5 hours
   setInterval(async () => {
     if (isWithinActiveWindow() && userData.isActive) {
       await checkFunds();
     }
-  }, 2 * 60 * 60 * 1000);
+  }, 5 * 60 * 60 * 1000);
 }
 
 // Initialize the spin service
@@ -863,4 +860,5 @@ module.exports = {
   // For internal use (exposed for backwards compatibility)
   userData,
   debugLogs
+
 };
