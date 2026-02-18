@@ -353,25 +353,20 @@
     </header>
     
     <div class="container">
-        <div class="alert alert-info">
-            <strong>ℹ️ Note:</strong> These tools use the JWT token from the main dashboard. 
-            Manual spinner will check for free spins first, and buy spins if needed.
-        </div>
-        
+       
         <div class="grid">
             <!-- Spinner Tool -->
             <div class="card">
-                <h2>🎰 Manual Spinner (with Buy Logic)</h2>
+                <h2>🎰 Manual Spinner</h2>
                 <p style="color: var(--secondary); margin-bottom: 20px; font-size: 14px;">
-                    Execute multiple spins with proper logic: checks free spins first, buys if needed, then spins.
-                    Each spin costs 1000 silvercoins if no free spin is available.
+                    Execute multiple spins.
                 </p>
                 
                 <div class="form-group">
                     <label for="spinCount">Number of spins:</label>
                     <input type="number" id="spinCount" min="1" max="100" value="10">
                     <small style="color: var(--secondary); display: block; margin-top: 4px;">
-                        Estimated time: ~2.7 seconds per spin
+                        -
                     </small>
                 </div>
                 
@@ -446,7 +441,7 @@
                 
                 <div class="form-group">
                     <label for="packName">Pack name to search:</label>
-                    <input type="text" id="packName" value="IEM Chengdu Groups Standard 2025">
+                    <input type="text" id="packName" value="IEM Krakow 2026: Player Pack">
                 </div>
                 
                 <div class="form-group">
@@ -525,13 +520,10 @@
         // Prize mapping (same as 34.spin.html)
         const prizeMap = {
             11755: "5,000 Silvercoins",
-            11750: "Core Standard Pack",
             11749: "500 Silvercoins",
             11754: "1,000,000 Silvercoins",
             11753: "100,000 Silvercoins",
             11752: "2,500 Silvercoins",
-            11782: "Core Refresh Pack",
-            11881: "IEM Krakow: Players Pack",
             11751: "1,000 Silvercoins"
         };
         
@@ -1008,4 +1000,5 @@
         }, 10000);
     </script>
 </body>
+
 </html>
