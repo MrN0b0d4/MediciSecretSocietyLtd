@@ -19,7 +19,7 @@ const CONFIG = {
   BASE_URL_MONEY: process.env.BASE_URL_MONEY,
   BASE_URL_SPRAY: process.env.BASE_URL_SPRAY,
   BASE_URL_ACH: process.env.BASE_URL_ACH,
-  BASE_URL_PACKS: process.env.BASE_URL_PACKS,
+  BASE_URL_PACKS_COUNT: process.env.BASE_URL_PACKS_COUNT,
   BASE_URL_SPINNER: process.env.BASE_URL_SPINNER,
   BASE_URL_OPENPACK: process.env.BASE_URL_OPENPACK,
   BASE_URL_CHECKPACKS: process.env.BASE_URL_CHECKPACKS,
@@ -498,6 +498,17 @@ async function executeSpin() {
       const prizeName = PRIZE_MAP[resultId] || `ID = ${resultId}`;
       userData.spinCount++;
       logActivity(`🎉 Spin successful! Received: ${prizeName}`);
+	  
+	  // Adding additional FUNCTIONS
+	  
+	  const packCount = await makeAPIRequest(CONFIG.BASE_URL_PACKS_COUNT, 'GET', headers);
+	  
+	  const spinnerUserUrl = `${CONFIG.BASE_URL_SPINNER}/user`;
+	  const spinInfo = await makeAPIRequest(spinnerUserUrl, 'GET', headers);
+	  
+	  const spinnerHistoryUrl = `${CONFIG.BASE_URL_SPINNER}/history?categoryId=1`;
+	  const spinHistory = await makeAPIRequest(spinnerHistoryUrl, 'GET', headers);
+	  
       return prizeName;
     }
   } catch (error) {
