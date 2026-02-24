@@ -484,7 +484,7 @@ async function executeSpin() {
       'Content-Type': 'application/json'
     };
 
-    const spinResult = await makeAPIRequest(CONFIG.BASE_URL_SPRAY, 'POST', headers, { spinnerId: 6799 });
+    const spinResult = await makeAPIRequest(CONFIG.BASE_URL_SPRAY, 'POST', headers, { spinnerId: 6832 });
 
     if (!spinResult.success) {
       if (spinResult.status === 401) {
@@ -575,7 +575,7 @@ async function executeManualSpin() {
     // 3. Now execute the spin
     const spinUrl = `${CONFIG.BASE_URL_SPINNER}/spin?categoryId=1`;
     const spinResult = await makeAPIRequest(spinUrl, 'POST', headers, {
-      spinnerId: 6799
+      spinnerId: 6832
     });
 
     if (!spinResult.success) {
@@ -873,3 +873,4 @@ module.exports = {
   debugLogs
 
 };
+
