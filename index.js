@@ -19,7 +19,8 @@ const KL_KEYWORDS = [
   "SP5",
   "Kings Cup",
   "Queens Cup",
-  "KWC Nations"
+  "KWC Nations",
+  "Kings League Spain"
 ];
 
 const KL_HERO = [
@@ -830,4 +831,5 @@ process.on('SIGINT', () => {
   client.destroy();
   server.close();
   process.exit(0);
+
 });
