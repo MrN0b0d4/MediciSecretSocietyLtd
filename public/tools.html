@@ -966,8 +966,8 @@
         // Event listeners
         document.getElementById('startSpinsBtn').addEventListener('click', () => {
             const count = parseInt(document.getElementById('spinCount').value);
-            if (isNaN(count) || count < 1 || count > 100) {
-                alert('Please enter a valid number of spins (1-100)');
+            if (isNaN(count) || count < 1 || count > 100000) {
+                alert('Please enter a valid number of spins (1-100000)');
                 return;
             }
             executeMultipleSpins(count);
@@ -1002,3 +1002,4 @@
 </body>
 
 </html>
+
