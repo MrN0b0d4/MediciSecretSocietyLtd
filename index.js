@@ -12,7 +12,7 @@ console.log("🌍 Time:", new Date().toISOString());
 // Check TOKEN exists (but do NOT print the token)
 console.log("🔑 Env TOKEN present:", Boolean(process.env.TOKEN));
 
-// ======================= DISCORD CONFIG =======================
+// ======================= DISCORD FEED BOT CONFIGURATION =======================
 const DEBUG_CHANNEL_ID = "1400226748611825725";
 const CATCH_ALL_CHANNEL_ID = "1400207538498179162";
 
@@ -31,116 +31,113 @@ const KL_KEYWORDS = [
   "Kings League Spain",
   "Kings League Italy"
 ];
-
 const KL_HERO = [
   " Hero ",
   "2025 Art Series Team Kit"
 ];
-
 const KL_MYTH = [
   "Mythic"
 ];
-
 const KL_PACKS = new Set([
-    "Platino 2023-24",
-    "Plata 2024-25",
-    "Oro 2024-25",
-    "Platino 2024-25",
-    "Split 1 Rewards",
-    "Platino+ 2024-25",
-    "Oro+ 2024-25",
-    "Plata+ 2024-25",
-    "Split 1 Rewards+ 2024-25+",
-    "Split 1 Campeones 2024-25",
-    "Split 5 Platino",
-    "Split 5: Oro 2024-25",
-    "Split 5 Plata",
-    "Split 5 Rewards",
-    "Split 5 Oro",
-    "S5 Wild Plata J1 2024-25",
-    "S5 Wild Cards J1 2024-25",
-    "S5 Rewards 2024-25",
-    "S5 Wild Plata J3 2024-25",
-    "S5 Wild Cards J3 2024-25",
-    "S5 Wild Plata J4 2024-25",
-    "S5 Wild Cards J4 2024-25",
-    "S5 Wild Plata J5 2024-25",
-    "S5 Wild Cards J5 2024-25",
-    "S5 Wild Cards J6 2024-25",
-    "S5 Wild Plata J6 2024-25",
-    "S5 Wild Cards J7",
-    "S5 Wild Plata J7",
-    "S5 Wild Plata J8",
-    "S5 Wild Cards J8",
-    "S5 Wild Plata J9",
-    "S5 Wild Cards J9",
-    "S5 Wild Cards J10",
-    "S5 Wild Plata J10",
-    "S5 Wild Plata J11",
-    "S5 Wild Cards J11",
-    "Campeón: Split 3",
-    "Pack de Bienvenida+ 2024-25",
-    "Pack de Bienvenida 2024-25",
-    "Pack de Bienvenida 2023-24",
-    "Plata 2023-24",
-    "Oro 2023-24",
-    "S5 Wild Plata Play-In",
-    "S5 Wild Cards Play-In",
-    "S5 Wild Cards Cuartos",
-    "S5 Wild Plata Cuartos",
-    "S5: Campeones",
-    "Split 5 Bienvenida",
-    "Kings Cup Spain Reward",
-    "Kings Cup Germany Reward",
-    "Kings Cup Italy Reward",
-    "Kings Cup Mexico Reward",
-    "Kings Cup MENA Reward",
-    "Kings Cup Brazil Rewards",
-    "Queens Cup Spain Reward",
-    "Queens Cup Mexico Reward",
-    "Kings Cup Spain Prestige",
-    "Kings Cup Germany Prestige",
-    "Kings Cup Italy Prestige",
-    "Kings Cup Mexico Prestige",
-    "Kings Cup MENA Prestige",
-    "Kings Cup Brazil Prestige",
-    "Queens Cup Spain Prestige",
-    "Queens Cup Mexico Prestige",
-    "Kings Cup Spain",
-    "Kings Cup Germany",
-    "Kings Cup Italy",
-    "Kings Cup Mexico",
-    "Kings Cup MENA",
-    "Kings Cup Brazil",
-    "Queens Cup Spain",
-    "Queens Cup Mexico",
-    "Queens Cup Mexico Reward",
-    "Queens Cup Spain Reward",
-    "Kings Cup MENA Reward",
-    "Kings Cup Mexico Reward",
-    "Kings Cup Brazil Rewards",
-    "Kings Cup Germany Reward",
-    "Kings Cup Italy Reward",
-    "Kings Cup Spain Reward",
-    "Kings Cup Spain Coentrão Prestige",
-    "Kings Cup Spain Coentrão",
-    "Kings Cup Germany Prestige",
-    "Kings Cup Germany",
-    "Kings Cup America Champions",
-    "Kings Cup Europe Champions",
-    "Queens Cup Champions",
-    "Kings World Cup Nations: Prestige",
-    "Kings World Cup Nations",
-    "Kings World Cup Nations: Reward"
+  "Platino 2023-24",
+  "Plata 2024-25",
+  "Oro 2024-25",
+  "Platino 2024-25",
+  "Split 1 Rewards",
+  "Platino+ 2024-25",
+  "Oro+ 2024-25",
+  "Plata+ 2024-25",
+  "Split 1 Rewards+ 2024-25+",
+  "Split 1 Campeones 2024-25",
+  "Split 5 Platino",
+  "Split 5: Oro 2024-25",
+  "Split 5 Plata",
+  "Split 5 Rewards",
+  "Split 5 Oro",
+  "S5 Wild Plata J1 2024-25",
+  "S5 Wild Cards J1 2024-25",
+  "S5 Rewards 2024-25",
+  "S5 Wild Plata J3 2024-25",
+  "S5 Wild Cards J3 2024-25",
+  "S5 Wild Plata J4 2024-25",
+  "S5 Wild Cards J4 2024-25",
+  "S5 Wild Plata J5 2024-25",
+  "S5 Wild Cards J5 2024-25",
+  "S5 Wild Cards J6 2024-25",
+  "S5 Wild Plata J6 2024-25",
+  "S5 Wild Cards J7",
+  "S5 Wild Plata J7",
+  "S5 Wild Plata J8",
+  "S5 Wild Cards J8",
+  "S5 Wild Plata J9",
+  "S5 Wild Cards J9",
+  "S5 Wild Cards J10",
+  "S5 Wild Plata J10",
+  "S5 Wild Plata J11",
+  "S5 Wild Cards J11",
+  "Campeón: Split 3",
+  "Pack de Bienvenida+ 2024-25",
+  "Pack de Bienvenida 2024-25",
+  "Pack de Bienvenida 2023-24",
+  "Plata 2023-24",
+  "Oro 2023-24",
+  "S5 Wild Plata Play-In",
+  "S5 Wild Cards Play-In",
+  "S5 Wild Cards Cuartos",
+  "S5 Wild Plata Cuartos",
+  "S5: Campeones",
+  "Split 5 Bienvenida",
+  "Kings Cup Spain Reward",
+  "Kings Cup Germany Reward",
+  "Kings Cup Italy Reward",
+  "Kings Cup Mexico Reward",
+  "Kings Cup MENA Reward",
+  "Kings Cup Brazil Rewards",
+  "Queens Cup Spain Reward",
+  "Queens Cup Mexico Reward",
+  "Kings Cup Spain Prestige",
+  "Kings Cup Germany Prestige",
+  "Kings Cup Italy Prestige",
+  "Kings Cup Mexico Prestige",
+  "Kings Cup MENA Prestige",
+  "Kings Cup Brazil Prestige",
+  "Queens Cup Spain Prestige",
+  "Queens Cup Mexico Prestige",
+  "Kings Cup Spain",
+  "Kings Cup Germany",
+  "Kings Cup Italy",
+  "Kings Cup Mexico",
+  "Kings Cup MENA",
+  "Kings Cup Brazil",
+  "Queens Cup Spain",
+  "Queens Cup Mexico",
+  "Queens Cup Mexico Reward",
+  "Queens Cup Spain Reward",
+  "Kings Cup MENA Reward",
+  "Kings Cup Mexico Reward",
+  "Kings Cup Brazil Rewards",
+  "Kings Cup Germany Reward",
+  "Kings Cup Italy Reward",
+  "Kings Cup Spain Reward",
+  "Kings Cup Spain Coentrão Prestige",
+  "Kings Cup Spain Coentrão",
+  "Kings Cup Germany Prestige",
+  "Kings Cup Germany",
+  "Kings Cup America Champions",
+  "Kings Cup Europe Champions",
+  "Queens Cup Champions",
+  "Kings World Cup Nations: Prestige",
+  "Kings World Cup Nations",
+  "Kings World Cup Nations: Reward"
 ]);
 
 // ======================= DISCORD CLIENT SETUP =======================
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-    ],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
 // Format price helper
@@ -152,16 +149,14 @@ function formatPrice(price) {
 // Template function to format values with Discord formatting
 const formatValue = (value, format = "") => {
   if (value === undefined || value === null) return "";
-  
   let formatted = String(value);
   if (format.includes("bold")) formatted = `**${formatted}**`;
   if (format.includes("italic")) formatted = `*${formatted}*`;
   if (format.includes("code")) formatted = `\`${formatted}\``;
-  
   return formatted;
 };
 
-// Channel configuration
+// Channel configuration (UNCHANGED)
 const CHANNEL_CONFIG = [
   // Debug channel (gets all non-filtered messages)
   {
@@ -169,28 +164,26 @@ const CHANNEL_CONFIG = [
     id: DEBUG_CHANNEL_ID,
     event: "all",
     template: (data) => {
-      return `**${data.event.toUpperCase()}** | User: ${data.user?.username || "Unknown"} | Type: ${data.entity?.type || "N/A"} | Item: ${data.entity?.itemName || "N/A"} | Price: ${data.market?.price ? `${formatPrice(data.market.price)}` : "N/A"}`;
+      return `**${data.event.toUpperCase()}**  User: ${data.user?.username || "Unknown"}  Type: ${data.entity?.type || "N/A"}  Item: ${data.entity?.itemName || "N/A"}  Price: ${data.market?.price ? `${formatPrice(data.market.price)}` : "N/A"}`;
     },
     condition: (data) =>
       !["pack-opened", "market-list", "market-sold", "pack-purchased", "spinner-feed"].includes(
         data.event,
       ),
   },
-  
   // Catch-all channel (gets all non-filtered messages in detailed format)
   {
     name: "all",
     id: CATCH_ALL_CHANNEL_ID,
     event: "all",
     template: (data) => {
-      return `**${data.event.toUpperCase()}** | User: **${data.user?.username || "Unknown"}** | message: ${JSON.stringify(data).substring(0, 100)}...`;
+      return `**${data.event.toUpperCase()}**  User: **${data.user?.username || "Unknown"}**  message: ${JSON.stringify(data).substring(0, 100)}...`;
     },
     condition: (data) =>
       !["pack-opened", "market-list", "market-sold", "pack-purchased", "spinner-feed"].includes(
         data.event,
       ),
   },
-
   // Pack opened events (mintNumber <= 30)
   {
     name: "feed-30",
@@ -199,21 +192,20 @@ const CHANNEL_CONFIG = [
     template: (data) => {
       const matchingCards = data.cards?.filter(card => card.mintNumber <= 30) || [];
       if (matchingCards.length === 0) return null;
-      return matchingCards.map(card => 
+      return matchingCards.map(card =>
         `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: *${data.user?.username || "Unknown"}* - Pack ID ${data?.id} - ${data?.packName}`
       ).join("\n");
     },
     condition: (data) => data.cards?.some(card => card.mintNumber <= 30) &&
       !KL_PACKS.has(data?.packName),
   },
-
   // Market listings (cards/stickers < #20)
   {
     name: "listed-20",
     id: "1400226959103099041",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -222,14 +214,13 @@ const CHANNEL_CONFIG = [
         !KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // Market listings (cards/stickers < #100)
   {
     name: "listed-100",
     id: "1400227005659615373",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -239,7 +230,6 @@ const CHANNEL_CONFIG = [
         !KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // Pack listings
   {
     name: "listed-packs",
@@ -252,7 +242,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) > 0.15 &&
       !KL_PACKS.has(data.entity?.itemName),
   },
-  
   // Pack listings for less than 15 cent
   {
     name: "listed-packs-15c",
@@ -265,14 +254,13 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) <= 0.15 &&
       !KL_PACKS.has(data.entity?.itemName),
   },
-
   // All listings
   {
     name: "listed-all-cards",
     id: "1400227076539158560",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -280,7 +268,6 @@ const CHANNEL_CONFIG = [
         !KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // Sales ≥ $1
   {
     name: "sold-1-usd",
@@ -296,7 +283,6 @@ const CHANNEL_CONFIG = [
         !KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // Pack sales
   {
     name: "sold-packs",
@@ -309,7 +295,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) > 0.11 &&
       !KL_PACKS.has(data.entity?.itemName),
   },
-  
   // Pack sales for 10 cents
   {
     name: "sold-packs-10c",
@@ -322,7 +307,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) <= 0.11 &&
       !KL_PACKS.has(data.entity?.itemName),
   },
-
   // All sales (non-pack/bundle)
   {
     name: "sold-all",
@@ -337,7 +321,7 @@ const CHANNEL_CONFIG = [
         !KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
- 
+
   // ======================= Kings League Channels =======================
   // KL Pack opened events (mintNumber <= 50)
   {
@@ -347,21 +331,20 @@ const CHANNEL_CONFIG = [
     template: (data) => {
       const matchingCards = data.cards?.filter(card => card.mintNumber <= 50) || [];
       if (matchingCards.length === 0) return null;
-      return matchingCards.map(card => 
+      return matchingCards.map(card =>
         `**${card.mintBatch || "N/A"}${card.mintNumber || "N/A"}** ${card.title || "Unknown"} opened by: *${data.user?.username || "Unknown"}* - Pack ID ${data?.id} - ${data?.packName}`
       ).join("\n");
     },
     condition: (data) => data.cards?.some(card => card.mintNumber <= 50) &&
       KL_PACKS.has(data?.packName),
   },
-
   // KL Market listings (cards/stickers < #200)
   {
     name: "kl-listed-200",
     id: "1428000363742629992",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -370,7 +353,6 @@ const CHANNEL_CONFIG = [
         KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // KL Pack listings
   {
     name: "kl-listed-packs",
@@ -383,7 +365,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) > 0.15 &&
       KL_PACKS.has(data.entity?.itemName),
   },
-  
   // KL Pack listings for less than 15 cent
   {
     name: "kl-listed-packs-15c",
@@ -396,14 +377,13 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) <= 0.15 &&
       KL_PACKS.has(data.entity?.itemName),
   },
-
   // KL All listings
   {
     name: "kl-listed-all-cards",
     id: "1428001382396334110",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -411,14 +391,13 @@ const CHANNEL_CONFIG = [
         KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-  
   // KL All HERO listings
   {
     name: "kl-listed-all-hero-cards",
     id: "1433056194368634940",
     event: "market-list",
     template: (data) => {
-      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `**${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -426,7 +405,6 @@ const CHANNEL_CONFIG = [
         KL_HERO.some(kw => name.includes(kw));
     }
   },
-
   // KL Sales ≥ $5
   {
     name: "kl-sold-5-usd",
@@ -442,7 +420,6 @@ const CHANNEL_CONFIG = [
         KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // KL Pack sales
   {
     name: "kl-sold-packs",
@@ -455,7 +432,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) > 0.11 &&
       KL_PACKS.has(data.entity?.itemName),
   },
-  
   // KL Pack sales for 10 cents
   {
     name: "kl-sold-packs-10c",
@@ -468,7 +444,6 @@ const CHANNEL_CONFIG = [
       parseFloat(data.market?.price) <= 0.11 &&
       KL_PACKS.has(data.entity?.itemName),
   },
-
   // KL sales all
   {
     name: "KL-sold-all",
@@ -483,78 +458,72 @@ const CHANNEL_CONFIG = [
         KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-
   // Bundle listings
   {
     name: "list-bundle",
     id: "1400227416885952644",
     event: "market-list",
     template: (data) => {
-      return `📦 *${data.user?.username || "Unknown"}* listed a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](<https://kolex.gg/bundles/view/${data.entity?.id}>) - ID \`${data?.id}\` - ID \`${data.market?.id}\``;
+      return `📦 *${data.user?.username || "Unknown"}* listed a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](https://kolex.gg/bundles/view/${data.entity?.id}) - ID \`${data?.id}\` - ID \`${data.market?.id}\``;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
-
   // Bundle sales
   {
     name: "sold-bundle",
     id: "1400227451585433640",
     event: "market-sold",
     template: (data) => {
-      return `💰 *${data.user?.username || "Unknown"}* bought a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](<https://kolex.gg/bundles/view/${data.entity?.id}>) - ID \`${data?.id}\``;
+      return `💰 *${data.user?.username || "Unknown"}* bought a bundle *${data.entity?.itemName || "Unknown"}* for **${formatPrice(data.market?.price)}** - #${data.entity?.id} - [Market](https://kolex.gg/bundles/view/${data.entity?.id}) - ID \`${data?.id}\``;
     },
     condition: (data) => data.entity?.type === "bundle",
   },
-
   // Listings < #20 and ≤ $0.50
   {
     name: "list20-less-50",
     id: "1400237694172532807",
     event: "market-list",
     template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
       data.entity?.mintNumber < 20 &&
       parseFloat(data.market?.price) <= 0.51,
   },
-
   // Listings < #10 and ≤ $4
   {
     name: "list10-less-4",
     id: "1433181458738053273",
     event: "market-list",
     template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
       data.entity?.mintNumber < 10 &&
       parseFloat(data.market?.price) <= 4.01,
   },
-   
   // Listings < #100 and ≤ $0.15
   {
     name: "list100-less-15",
     id: "1400238804182372382",
     event: "market-list",
     template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) =>
       ["card", "sticker"].includes(data.entity?.type) &&
       data.entity?.mintNumber < 100 &&
       parseFloat(data.market?.price) <= 0.15,
   },
-  
   // KL Listings < #150 and ≤ $0.40
   {
     name: "kl-list150-less-40",
     id: "1433055346578161756",
     event: "market-list",
     template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -564,14 +533,13 @@ const CHANNEL_CONFIG = [
         KL_KEYWORDS.some(kw => name.includes(kw));
     }
   },
-  
   // KL Listings HERO and ≤ $20
   {
     name: "kl-list-hero-less-20usd",
     id: "1433055528900235324",
     event: "market-list",
     template: (data) => {
-      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](<https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint>) \`${data.market?.id}\``;
+      return `💸 **${data.entity?.mintBatch || "N/A"}${data.entity?.mintNumber || "N/A"}** ${data.entity?.type} ${data.entity?.itemName || "Unknown"} listed by *${data.user?.username || "Unknown"}* for **${formatPrice(data.market?.price)}** - ${data.entity?.id} - [Market](https://kolex.gg/market/${data.entity?.type}/${data.entity?.templateId}?sort=mint) \`${data.market?.id}\``;
     },
     condition: (data) => {
       const name = data.entity?.itemName || "";
@@ -580,7 +548,6 @@ const CHANNEL_CONFIG = [
         KL_HERO.some(kw => name.includes(kw));
     }
   },
-
   // Store purchases
   {
     name: "store-purchase",
@@ -591,7 +558,6 @@ const CHANNEL_CONFIG = [
     },
     condition: null,
   },
-  
   // Spinner
   {
     name: "spinner",
@@ -604,131 +570,135 @@ const CHANNEL_CONFIG = [
   },
 ];
 
-// Helper to send messages safely
-function sendToChannel(channelId, message) {
-    if (!message) return;
-
-    const channel = client.channels.cache.get(channelId);
-    if (!channel) {
-        console.warn("⚠️ Channel not found in cache:", channelId);
-        return;
-    }
-
-    channel.send(message).catch(err => {
-        console.error(`❌ Error sending message to ${channelId}:`, err);
-    });
-}
-
-function sendToDebugChannel(message) {
-    sendToChannel(DEBUG_CHANNEL_ID, message);
-}
-
-// ======================= WEBSOCKET SETUP (IMPROVED LOGGING) =======================
+// ======================= WEBSOCKET MANAGEMENT (with improved logging) =======================
 let socket;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
-function connectWebSocket() {
-    console.log("🌐 Initialising WebSocket connection...");
-
-    try {
-        socket = new WebSocket(
-            "wss://sockets.kolex.gg/socket.io/?EIO=3&transport=websocket",
-            {
-                headers: {
-                    // These headers make your bot behave more like a browser
-                    "User-Agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36",
-                    "Origin": "https://kolex.gg"
-                }
-            }
-        );
-    } catch (e) {
-        console.error("❌ WebSocket constructor error:", e);
-        return;
-    }
-
-    socket.on("open", () => {
-        console.log("🟢 WebSocket Connected");
-        const joinMsg = '42["join-public-feed"]';
-
-        console.log("→ Sending join message:", joinMsg);
-        socket.send(joinMsg);
-
-        reconnectAttempts = 0;
-    });
-
-    socket.on("close", () => {
-        console.log("🔴 WebSocket Disconnected");
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            const delay = Math.min(1000 * reconnectAttempts, 5000);
-            console.log(`⏳ Reconnecting in ${delay}ms...`);
-            setTimeout(connectWebSocket, delay);
-            reconnectAttempts++;
-        }
-    });
-
-    socket.on("error", (err) => {
-        console.error("❌ WebSocket Error:", err);
-    });
-
-    socket.on("message", (rawData) => {
-        const data = rawData.toString();
-
-        // Log short control packets
-        if (data.length < 30) {
-            console.log("⟵ WS msg:", data);
-        }
-
-        try {
-            // Socket.IO heartbeat
-            if (data === "3") {
-                socket.send("3");
-                return;
-            }
-
-            // Normal feed payloads
-            if (data.startsWith("42")) {
-                const parsed = JSON.parse(data.substring(2));
-                if (!Array.isArray(parsed)) {
-                    console.warn("⚠️ Unexpected WS payload:", data);
-                    return;
-                }
-
-                const [eventName, eventData] = parsed;
-                eventData.event = eventName;
-
-                // Pass into your existing router logic
-                CHANNEL_CONFIG.forEach((config) => {
-                    if (
-                        (config.event === "all" || config.event === eventName) &&
-                        (config.condition === null || config.condition(eventData))
-                    ) {
-                        const msg = config.template(eventData);
-                        if (msg) sendToChannel(config.id, msg);
-                    }
-                });
-            }
-
-        } catch (err) {
-            console.error("❌ Error processing WS message:", err, "Raw:", data);
-        }
-    });
+function shouldProcessEvent(eventName) {
+  const SKIP_EVENTS = ["join-public-feed"];
+  return !SKIP_EVENTS.includes(eventName);
 }
 
-// ======================= EXPRESS SERVER (SPIN TOOL) =======================
+function sendToChannel(channelId, message) {
+  if (!message) return;
+
+  const channel = client.channels.cache.get(channelId);
+  if (!channel) {
+    console.warn("⚠️ Channel not found in cache:", channelId);
+    return;
+  }
+
+  channel.send(message).catch((err) => {
+    console.error(`Error sending to channel ${channelId}:`, err);
+  });
+}
+
+function sendToDebugChannel(message) {
+  sendToChannel(DEBUG_CHANNEL_ID, message);
+}
+
+function connectWebSocket() {
+  console.log("🌐 Initialising WebSocket connection...");
+
+  try {
+    socket = new WebSocket(
+      "wss://sockets.kolex.gg/socket.io/?EIO=3&transport=websocket",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36",
+          "Origin": "https://kolex.gg",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("❌ WebSocket constructor error:", e);
+    return;
+  }
+
+  socket.on("open", () => {
+    console.log("🟢 WebSocket Connected");
+    const joinMsg = '42["join-public-feed"]';
+    console.log("→ Sending join message:", joinMsg);
+    socket.send(joinMsg);
+    reconnectAttempts = 0;
+  });
+
+  socket.on("close", () => {
+    console.log("🔴 WebSocket Disconnected");
+    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      const delay = Math.min(1000 * reconnectAttempts, 5000);
+      console.log(`⏳ Reconnecting in ${delay}ms...`);
+      setTimeout(connectWebSocket, delay);
+      reconnectAttempts++;
+    }
+  });
+
+  socket.on("error", (err) => {
+    console.error("❌ WebSocket Error:", err);
+  });
+
+  socket.on("message", (rawData) => {
+    const data = rawData.toString();
+
+    if (data.length < 60) {
+      console.log("⟵ WS msg:", data);
+    }
+
+    try {
+      // Socket.IO heartbeat
+      if (data === "3") {
+        socket.send("3");
+        return;
+      }
+
+      // Socket.IO actual event payloads
+      if (data.startsWith("42")) {
+        const parsed = JSON.parse(data.substring(2));
+        if (!Array.isArray(parsed)) {
+          console.warn("⚠️ Unexpected WS payload:", data);
+          return;
+        }
+        const [eventName, eventData] = parsed;
+        if (!eventName) return;
+
+        eventData.event = eventName;
+        if (!shouldProcessEvent(eventName)) return;
+
+        CHANNEL_CONFIG.forEach((config) => {
+          if (
+            (config.event === "all" || config.event === eventName) &&
+            (config.condition === null || config.condition(eventData))
+          ) {
+            const msg = config.template(eventData);
+            if (msg) sendToChannel(config.id, msg);
+          }
+        });
+      }
+
+      // (Optional) log other control frames for a while
+      if (data.startsWith("0") || data.startsWith("40") || data.startsWith("41")) {
+        console.log("CTRL:", data.slice(0, 120));
+      }
+    } catch (error) {
+      console.error("Error processing message:", error, "Raw:", data);
+    }
+  });
+}
+
+// ======================= EXPRESS SERVER (spray TOOL) =======================
 const app = express();
 const server = http.createServer(app);
 
-// Import spin service
-const spinService = require('./spin-service');
+// Import spray service
+const spinService = require('./spray-service');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// ======================= SPIN SERVICE API ROUTES =======================
-
+// ======================= spray SERVICE API ROUTES =======================
 // Get user data for dashboard
 app.get('/api/user', (req, res) => {
   const safeData = { ...spinService.getUserData() };
@@ -774,9 +744,9 @@ app.post('/api/proxy/manual-spin', async (req, res) => {
     const result = await spinService.executeManualSpin();
     res.json(result);
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -788,9 +758,9 @@ app.post('/api/proxy/multiple-spins', async (req, res) => {
     const results = await spinService.executeMultipleSpins(count);
     res.json(results);
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -823,13 +793,25 @@ app.post('/api/proxy/open-pack', async (req, res) => {
   }
 });
 
-// ======================= DISCORD BOT SETUP =======================
-client.on("ready", () => {
-  console.log(`🤖 Feed Bot logged in as ${client.user.tag}`);
+// ======================= DISCORD BOT SETUP (diagnostics-first) =======================
+client.on("ready", async () => {
+  console.log(`🤖 Discord logged in as ${client.user.tag}`);
+
+  // Test channel accessibility
+  console.log("🔍 Checking debug channel access...");
+  const dbg = await client.channels.fetch(DEBUG_CHANNEL_ID).catch(() => null);
+  console.log("📡 Debug channel fetch success:", Boolean(dbg));
+
+  if (!dbg) {
+    console.warn("⚠️ Bot cannot access debug channel – check guild membership & permissions.");
+  }
+
   sendToDebugChannel("🤖 Feed Bot started successfully");
+
+  // Start WebSocket feed
   connectWebSocket();
 
-  // Keep WebSocket alive
+  // Keep WS alive
   setInterval(() => {
     if (socket?.readyState === WebSocket.OPEN) {
       socket.send("2");
@@ -839,20 +821,32 @@ client.on("ready", () => {
 
 // ======================= START EVERYTHING =======================
 const PORT = process.env.PORT || 8080;
-
-server.listen(PORT, () => {
+const serverInstance = server.listen(PORT, () => {
   console.log(`🚀 Combined server running on http://localhost:${PORT}`);
   console.log(`📊 Dashboard: http://localhost:${PORT}`);
   console.log(`🛠️  Tools: http://localhost:${PORT}/tools.html`);
-  
-  // Start Discord bot
-  client.login(process.env.TOKEN).catch((err) => {
-    console.error("❌ Discord login error:", err);
-    process.exit(1);
-  });
-  
-  // Initialize spin service (delayed to ensure token refresh first)
+
+  // --- Discord login with full diagnostics ---
+  console.log("🔐 Attempting Discord login...");
+
+  client.login(process.env.TOKEN)
+    .then(() => {
+      console.log("✅ Discord login promise resolved (waiting for READY event)...");
+    })
+    .catch((err) => {
+      console.error("❌ DISCORD LOGIN FAILED!");
+      console.error("Error object:", err);
+      console.error("Name:", err?.name);
+      console.error("Code:", err?.code);
+      console.error("Message:", err?.message);
+      console.error("Stack:", err?.stack);
+      // Hard exit so Render restarts and surfaces the error again if needed
+      process.exit(1);
+    });
+
+  // Initialise spin service (delayed to ensure token refresh first)
   setTimeout(() => {
+    console.log("🚀 INITIALIZING SPIN SERVICE...");
     spinService.initialize();
   }, 5000);
 });
@@ -862,7 +856,7 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
   if (socket) socket.close();
   client.destroy();
-  server.close();
+  serverInstance.close();
   process.exit(0);
 });
 
@@ -870,8 +864,6 @@ process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully...');
   if (socket) socket.close();
   client.destroy();
-  server.close();
+  serverInstance.close();
   process.exit(0);
-
 });
-
