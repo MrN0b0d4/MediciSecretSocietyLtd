@@ -4,6 +4,25 @@ const http = require("http");
 const express = require("express");
 const path = require("path");
 
+// ======================= FIX FOR WEBSOCKET WITH PROXY =======================
+// Ensure WebSocket doesn't use proxy by default
+// This creates a custom WebSocket constructor that bypasses proxy
+const OriginalWebSocket = WebSocket;
+class NoProxyWebSocket extends OriginalWebSocket {
+  constructor(address, options = {}) {
+    // Force no proxy by setting agent to null
+    super(address, {
+      ...options,
+      agent: null,
+      rejectUnauthorized: false
+    });
+  }
+}
+
+// Replace the global WebSocket with our custom one for Discord connections
+// But preserve the original for any other uses
+global.DiscordWebSocket = NoProxyWebSocket;
+
 // ======================= DISCORD FEED BOT CONFIGURATION =======================
 const DEBUG_CHANNEL_ID = "1400226748611825725";
 const CATCH_ALL_CHANNEL_ID = "1400207538498179162";
@@ -621,7 +640,8 @@ function sendToDebugChannel(message) {
 }
 
 function connectWebSocket() {
-  socket = new WebSocket(
+  // Use the custom NoProxyWebSocket instead of regular WebSocket
+  socket = new NoProxyWebSocket(
     "wss://sockets.kolex.gg/socket.io/?EIO=3&transport=websocket",
   );
 

@@ -1,4 +1,6 @@
 const axios = require('axios');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const https = require('https');
 
 // ====================== PROXY CONFIGURATION =======================
 const PROXY_CONFIG = {
@@ -23,7 +25,6 @@ const CONFIG = {
   BASE_URL_SPINNER: process.env.BASE_URL_SPINNER,
   BASE_URL_OPENPACK: process.env.BASE_URL_OPENPACK,
   BASE_URL_CHECKPACKS: process.env.BASE_URL_CHECKPACKS,
-
 };
 
 // ======================= USER DATA STORAGE =======================
@@ -77,6 +78,20 @@ const PRIZE_MAP = {
   11751: '1,000 Silvercoins'
 };
 
+// Cache the proxy agent to avoid recreating it
+let proxyAgent = null;
+
+// Initialize proxy agent if enabled
+if (PROXY_CONFIG.enabled && PROXY_CONFIG.host) {
+  try {
+    const proxyUrl = `http://${PROXY_CONFIG.username}:${PROXY_CONFIG.password}@${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`;
+    proxyAgent = new HttpsProxyAgent(proxyUrl);
+    console.log(`🔌 Proxy agent initialized: ${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`);
+  } catch (error) {
+    console.error('❌ Failed to initialize proxy agent:', error.message);
+  }
+}
+
 // ======================= UTILITY FUNCTIONS =======================
 
 // Debug logging function
@@ -128,26 +143,21 @@ function logActivity(message) {
   console.log(`[${timestamp}] ${message}`);
 }
 
-const { HttpsProxyAgent } = require('https-proxy-agent');
-
-// Get proxy configuration for axios
+// Get axios configuration with proxy (only for specific requests)
 function getAxiosConfig() {
   const config = {
-    timeout: 30000, // Increase timeout to 30 seconds
-    httpsAgent: new (require('https').Agent)({
+    timeout: 30000,
+    httpsAgent: new https.Agent({
       rejectUnauthorized: false,
       keepAlive: true
     })
   };
   
-  if (PROXY_CONFIG.enabled && PROXY_CONFIG.host) {
-    // Use proxy agent instead of axios proxy config
-    const proxyUrl = `http://${PROXY_CONFIG.username}:${PROXY_CONFIG.password}@${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`;
-    config.httpsAgent = new HttpsProxyAgent(proxyUrl);
-    config.httpAgent = new HttpsProxyAgent(proxyUrl);
-    config.proxy = false; // Disable axios proxy, use agent instead
-    
-    console.log(`🔌 Proxy enabled via agent: ${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`);
+  // Only add proxy agent if enabled - this won't affect global connections
+  if (proxyAgent) {
+    config.httpsAgent = proxyAgent;
+    config.httpAgent = proxyAgent;
+    config.proxy = false;
   }
   
   return config;
@@ -500,14 +510,13 @@ async function executeSpin() {
       logActivity(`🎉 Spin successful! Received: ${prizeName}`);
 	  
 	  // Adding additional FUNCTIONS
-	  
-	  const packCount = await makeAPIRequest(CONFIG.BASE_URL_PACKS_COUNT, 'GET', headers);
+	  await makeAPIRequest(CONFIG.BASE_URL_PACKS_COUNT, 'GET', headers);
 	  
 	  const spinnerUserUrl = `${CONFIG.BASE_URL_SPINNER}/user`;
-	  const spinInfo = await makeAPIRequest(spinnerUserUrl, 'GET', headers);
+	  await makeAPIRequest(spinnerUserUrl, 'GET', headers);
 	  
 	  const spinnerHistoryUrl = `${CONFIG.BASE_URL_SPINNER}/history?categoryId=1`;
-	  const spinHistory = await makeAPIRequest(spinnerHistoryUrl, 'GET', headers);
+	  await makeAPIRequest(spinnerHistoryUrl, 'GET', headers);
 	  
       return prizeName;
     }
@@ -871,7 +880,4 @@ module.exports = {
   // For internal use (exposed for backwards compatibility)
   userData,
   debugLogs
-
 };
-
-
