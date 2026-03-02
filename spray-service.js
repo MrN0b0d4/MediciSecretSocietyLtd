@@ -484,7 +484,7 @@ async function executeSpin() {
       'Content-Type': 'application/json'
     };
 
-    const spinResult = await makeAPIRequest(CONFIG.BASE_URL_SPRAY, 'POST', headers, { spinnerId: 6832 });
+    const spinResult = await makeAPIRequest(CONFIG.BASE_URL_SPRAY, 'POST', headers, { spinnerId: 6865 });
 
     if (!spinResult.success) {
       if (spinResult.status === 401) {
@@ -873,4 +873,5 @@ module.exports = {
   debugLogs
 
 };
+
 
