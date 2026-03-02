@@ -1,10 +1,18 @@
+// ======================= IMPORTS =======================
 const { Client, GatewayIntentBits } = require("discord.js");
 const WebSocket = require("ws");
 const http = require("http");
 const express = require("express");
 const path = require("path");
 
-// ======================= DISCORD FEED BOT CONFIGURATION =======================
+// ======================= STARTUP DEBUG =======================
+console.log("🚀 Boot: Starting service initialisation...");
+console.log("🌍 Time:", new Date().toISOString());
+
+// Check TOKEN exists (but do NOT print the token)
+console.log("🔑 Env TOKEN present:", Boolean(process.env.TOKEN));
+
+// ======================= DISCORD CONFIG =======================
 const DEBUG_CHANNEL_ID = "1400226748611825725";
 const CATCH_ALL_CHANNEL_ID = "1400207538498179162";
 
@@ -126,13 +134,13 @@ const KL_PACKS = new Set([
     "Kings World Cup Nations: Reward"
 ]);
 
-// Discord Client Setup
+// ======================= DISCORD CLIENT SETUP =======================
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+    ],
 });
 
 // Format price helper
@@ -596,84 +604,116 @@ const CHANNEL_CONFIG = [
   },
 ];
 
-// ======================= WEBSOCKET MANAGEMENT =======================
+// Helper to send messages safely
+function sendToChannel(channelId, message) {
+    if (!message) return;
+
+    const channel = client.channels.cache.get(channelId);
+    if (!channel) {
+        console.warn("⚠️ Channel not found in cache:", channelId);
+        return;
+    }
+
+    channel.send(message).catch(err => {
+        console.error(`❌ Error sending message to ${channelId}:`, err);
+    });
+}
+
+function sendToDebugChannel(message) {
+    sendToChannel(DEBUG_CHANNEL_ID, message);
+}
+
+// ======================= WEBSOCKET SETUP (IMPROVED LOGGING) =======================
 let socket;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
-function shouldProcessEvent(eventName) {
-  const SKIP_EVENTS = ["join-public-feed"];
-  return !SKIP_EVENTS.includes(eventName);
-}
-
-function sendToChannel(channelId, message) {
-  if (!message) return;
-  const channel = client.channels.cache.get(channelId);
-  if (channel) {
-    channel.send(message).catch((err) => {
-      console.error(`Error sending to channel ${channelId}:`, err);
-    });
-  }
-}
-
-function sendToDebugChannel(message) {
-  sendToChannel(DEBUG_CHANNEL_ID, message);
-}
-
 function connectWebSocket() {
-  socket = new WebSocket(
-    "wss://sockets.kolex.gg/socket.io/?EIO=3&transport=websocket",
-  );
+    console.log("🌐 Initialising WebSocket connection...");
 
-  socket.on("open", () => {
-    console.log("🟢 Feed WebSocket Connected");
-    socket.send('42["join-public-feed"]');
-    reconnectAttempts = 0;
-  });
-
-  socket.on("close", () => {
-    console.log("🔴 Feed WebSocket Disconnected");
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      const delay = Math.min(1000 * reconnectAttempts, 5000);
-      setTimeout(connectWebSocket, delay);
-      reconnectAttempts++;
-    }
-  });
-
-  socket.on("error", (err) => {
-    console.error("Feed WebSocket Error:", err);
-  });
-
-  socket.on("message", (rawData) => {
     try {
-      const data = rawData.toString();
-      if (data === "3") {
-        socket.send("3");
-        return;
-      }
-
-      if (data.startsWith("42")) {
-        const [eventName, eventData] = JSON.parse(data.substring(2));
-        eventData.event = eventName;
-
-        if (!shouldProcessEvent(eventName)) return;
-
-        CHANNEL_CONFIG.forEach((config) => {
-          if (
-            (config.event === "all" || config.event === eventName) &&
-            (config.condition === null || config.condition(eventData))
-          ) {
-            const message = config.template(eventData);
-            if (message) {
-              sendToChannel(config.id, message);
+        socket = new WebSocket(
+            "wss://sockets.kolex.gg/socket.io/?EIO=3&transport=websocket",
+            {
+                headers: {
+                    // These headers make your bot behave more like a browser
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36",
+                    "Origin": "https://kolex.gg"
+                }
             }
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error processing message:", error);
+        );
+    } catch (e) {
+        console.error("❌ WebSocket constructor error:", e);
+        return;
     }
-  });
+
+    socket.on("open", () => {
+        console.log("🟢 WebSocket Connected");
+        const joinMsg = '42["join-public-feed"]';
+
+        console.log("→ Sending join message:", joinMsg);
+        socket.send(joinMsg);
+
+        reconnectAttempts = 0;
+    });
+
+    socket.on("close", () => {
+        console.log("🔴 WebSocket Disconnected");
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            const delay = Math.min(1000 * reconnectAttempts, 5000);
+            console.log(`⏳ Reconnecting in ${delay}ms...`);
+            setTimeout(connectWebSocket, delay);
+            reconnectAttempts++;
+        }
+    });
+
+    socket.on("error", (err) => {
+        console.error("❌ WebSocket Error:", err);
+    });
+
+    socket.on("message", (rawData) => {
+        const data = rawData.toString();
+
+        // Log short control packets
+        if (data.length < 30) {
+            console.log("⟵ WS msg:", data);
+        }
+
+        try {
+            // Socket.IO heartbeat
+            if (data === "3") {
+                socket.send("3");
+                return;
+            }
+
+            // Normal feed payloads
+            if (data.startsWith("42")) {
+                const parsed = JSON.parse(data.substring(2));
+                if (!Array.isArray(parsed)) {
+                    console.warn("⚠️ Unexpected WS payload:", data);
+                    return;
+                }
+
+                const [eventName, eventData] = parsed;
+                eventData.event = eventName;
+
+                // Pass into your existing router logic
+                CHANNEL_CONFIG.forEach((config) => {
+                    if (
+                        (config.event === "all" || config.event === eventName) &&
+                        (config.condition === null || config.condition(eventData))
+                    ) {
+                        const msg = config.template(eventData);
+                        if (msg) sendToChannel(config.id, msg);
+                    }
+                });
+            }
+
+        } catch (err) {
+            console.error("❌ Error processing WS message:", err, "Raw:", data);
+        }
+    });
 }
 
 // ======================= EXPRESS SERVER (SPIN TOOL) =======================
