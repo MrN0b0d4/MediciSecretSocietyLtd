@@ -1,6 +1,11 @@
+// Preserve global agents
+const http = require('http');
+const https = require('https');
+const originalHttpAgent = http.globalAgent;
+const originalHttpsAgent = https.globalAgent;
+
 const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
-const https = require('https');
 
 // ====================== PROXY CONFIGURATION =======================
 const PROXY_CONFIG = {
@@ -145,6 +150,7 @@ function logActivity(message) {
 
 // Get axios configuration with proxy (only for specific requests)
 function getAxiosConfig() {
+  // Create a new agent for each request instead of reusing
   const config = {
     timeout: 30000,
     httpsAgent: new https.Agent({
@@ -153,10 +159,13 @@ function getAxiosConfig() {
     })
   };
   
-  // Only add proxy agent if enabled - this won't affect global connections
-  if (proxyAgent) {
-    config.httpsAgent = proxyAgent;
-    config.httpAgent = proxyAgent;
+  
+  // Only use proxy agent if enabled - and ensure it's a new instance
+  if (PROXY_CONFIG.enabled && PROXY_CONFIG.host && proxyAgent) {
+    // Create a fresh proxy agent for each request to avoid conflicts
+    const freshProxyAgent = new HttpsProxyAgent(`http://${PROXY_CONFIG.username}:${PROXY_CONFIG.password}@${PROXY_CONFIG.host}:${PROXY_CONFIG.port}`);
+    config.httpsAgent = freshProxyAgent;
+    config.httpAgent = freshProxyAgent;
     config.proxy = false;
   }
   
