@@ -681,7 +681,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Import spin service
-const spinService = require('./spin-service');
+const spinService = require('./spray-service');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
