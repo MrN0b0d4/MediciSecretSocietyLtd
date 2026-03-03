@@ -683,7 +683,7 @@ async function getUserPacks() {
     let hasMore = true;
     
     while (hasMore) {
-      const url = `${CONFIG.URL_PACK4EK}?page=${page}&categoryIds=1`;
+      const url = `${CONFIG.URL_PACK4EK}?page=${page}&categoryIds=1%2C73`;
       const result = await makeAPIRequest(url, 'GET', headers);
       
       if (!result.success) {
