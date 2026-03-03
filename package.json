@@ -1,15 +1,14 @@
 {
-  "name": "Time-saving-helper",
+  "name": "spray-automation",
   "version": "1.0.0",
-  "description": "Automated API requests for v special needs",
+  "description": "Automated spray tool",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "ws": "^8.14.2",
     "express": "^4.18.2",
+	"node-cron": "^3.0.2",
     "axios": "^1.6.2",
     "https-proxy-agent": "^7.0.4"
   },
