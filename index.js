@@ -25,13 +25,14 @@ const CONFIG = {
   URL_SPRAYER: process.env.URL_SPRAYER,
   URL_PACK0PEN: process.env.URL_PACK0PEN,
   URL_PACK4EK: process.env.URL_PACK4EK,
+  URL_CARD_TEMPLATE: process.env.URL_CARD_TEMPLATE,
 };
 
 // ======================= USER DATA STORAGE =======================
 let userData = {
   jwtToken: null,
   lastRefresh: null,
-  nextSpinTime: null,
+  nextSprayTime: null,
   sprayCount: 0,
   achievementsClaimed: 0,
   lastFunds: 0,
@@ -120,7 +121,7 @@ function debugLog(action, url, method, headers = {}, data = null, response = nul
     console.log(`❌ ERROR: ${error.message}`);
   } else if (response) {
     console.log(`✅ RESPONSE: ${response.status}`);
-	console.log(`   STATUS: ${response.status}`);
+    console.log(`   STATUS: ${response.status}`);
     console.log(`   DATA:`, JSON.stringify(response.data, null, 2));
   }
   console.log('='.repeat(80) + '\n');
@@ -285,8 +286,8 @@ function computeEffectiveWindow(date = new Date()) {
   return { effectiveStart, effectiveEnd };
 }
 
-// Calculate next spin time
-function calculateNextSpinTime() {
+// Calculate next spray time
+function calculateNextSprayTime() {
   const params = getSchedulingParams();
   
   // Convert to milliseconds
@@ -299,12 +300,12 @@ function calculateNextSpinTime() {
   );
 
   const totalDelayMs = baseIntervalMs + randomAddMs;
-  const nextSpinTime = new Date(Date.now() + totalDelayMs);
-  userData.nextSpinTime = nextSpinTime.toISOString();
+  const nextSprayTime = new Date(Date.now() + totalDelayMs);
+  userData.nextSprayTime = nextSprayTime.toISOString();
 
-  logActivity(`⏰ Next spin in ${Math.round(totalDelayMs / 60000)} minutes (at ${nextSpinTime.toUTCString()})`);
+  logActivity(`⏰ Next spray in ${Math.round(totalDelayMs / 60000)} minutes (at ${nextSprayTime.toUTCString()})`);
   
-  return nextSpinTime;
+  return nextSprayTime;
 }
 
 // ======================= CORE API FUNCTIONS =======================
@@ -469,20 +470,20 @@ async function claimAchievements() {
   }
 }
 
-// Execute spray (for automated schedule - doesn't buy spins)
-async function executeSpin() {
+// Execute scheduled spray (free spray - no purchase)
+async function executeScheduledSpray(sprayerId) {
   if (!userData.jwtToken) {
-    logActivity('ERROR: No JWT token available for spray');
-    calculateNextSpinTime();
+    logActivity('ERROR: No JWT token available for scheduled spray');
+    calculateNextSprayTime();
     return null;
   }
 
   if (!isWithinActiveWindow()) {
-    logActivity('⏰ Outside active window, skipping');
+    logActivity('⏰ Outside active window, skipping scheduled spray');
     return null;
   }
 
-  logActivity('🎰 Executing free spray...');
+  logActivity(`🎰 Executing scheduled free spray with sprayerId: ${sprayerId}...`);
 
   try {
     const headers = {
@@ -490,47 +491,47 @@ async function executeSpin() {
       'Content-Type': 'application/json'
     };
 
-    const spinResult = await makeAPIRequest(CONFIG.URL_SPRAY, 'POST', headers, { spinnerId: 6865 });
+    const sprayResult = await makeAPIRequest(CONFIG.URL_SPRAY, 'POST', headers, { spinnerId: parseInt(sprayerId) });
 
-    if (!spinResult.success) {
-      if (spinResult.status === 401) {
-        logActivity('JWT expired during spin, attempting refresh...');
+    if (!sprayResult.success) {
+      if (sprayResult.status === 401) {
+        logActivity('JWT expired during spray, attempting refresh...');
         await refreshToken();
       }
-      logActivity(`⚠️ Spin failed: ${spinResult.error}`);
+      logActivity(`⚠️ Scheduled spray failed: ${sprayResult.error}`);
     } else {
-      const spinData = spinResult.data.data;
-      const resultId = spinData.id;
+      const sprayData = sprayResult.data.data;
+      const resultId = sprayData.id;
       const prizeName = PRIZE_MAP[resultId] || `ID = ${resultId}`;
       userData.sprayCount++;
-      logActivity(`🎉 Spin successful! Received: ${prizeName}`);
+      logActivity(`🎉 Scheduled spray successful! Received: ${prizeName}`);
       
       // Additional API calls
       await makeAPIRequest(CONFIG.URL_PACKNUM, 'GET', headers);
-      const spinnerUserUrl = `${CONFIG.URL_SPRAYER}/user`;
-      await makeAPIRequest(spinnerUserUrl, 'GET', headers);
-      const spinnerHistoryUrl = `${CONFIG.URL_SPRAYER}/history?categoryId=1`;
-      await makeAPIRequest(spinnerHistoryUrl, 'GET', headers);
+      const sprayerUserUrl = `${CONFIG.URL_SPRAYER}/user`;
+      await makeAPIRequest(sprayerUserUrl, 'GET', headers);
+      const sprayerHistoryUrl = `${CONFIG.URL_SPRAYER}/history?categoryId=1`;
+      await makeAPIRequest(sprayerHistoryUrl, 'GET', headers);
       
       return prizeName;
     }
   } catch (error) {
-    logActivity(`❌ Spin error: ${error.message}`);
+    logActivity(`❌ Scheduled spray error: ${error.message}`);
   } finally {
-    calculateNextSpinTime();
+    calculateNextSprayTime();
   }
 
   return null;
 }
 
 // MANUAL SPRAY FUNCTION - with buy spray logic
-async function executeManualSpin() {
+async function executeManualSpray(sprayerId) {
   if (!userData.jwtToken) {
     logActivity('ERROR: No JWT token available for manual spray');
     return { success: false, error: 'No JWT token available' };
   }
 
-  logActivity('🎰 Starting manual spray process...');
+  logActivity(`🎰 Starting manual spray process with sprayerId: ${sprayerId}...`);
 
   try {
     const headers = {
@@ -538,70 +539,70 @@ async function executeManualSpin() {
       'Content-Type': 'application/json'
     };
 
-    // 1. First, check spinner user data
-    const spinnerUserUrl = `${CONFIG.URL_SPRAYER}/user`;
-    const spinnerUserResult = await makeAPIRequest(spinnerUserUrl, 'GET', headers);
+    // 1. First, check sprayer user data
+    const sprayerUserUrl = `${CONFIG.URL_SPRAYER}/user`;
+    const sprayerUserResult = await makeAPIRequest(sprayerUserUrl, 'GET', headers);
 
-    if (!spinnerUserResult.success) {
-      if (spinnerUserResult.status === 401) {
-        logActivity('JWT expired during spinner check, attempting refresh...');
+    if (!sprayerUserResult.success) {
+      if (sprayerUserResult.status === 401) {
+        logActivity('JWT expired during sprayer check, attempting refresh...');
         const refreshSuccess = await refreshToken();
         if (refreshSuccess) {
-          return await executeManualSpin();
+          return await executeManualSpray(sprayerId);
         }
       }
-      return { success: false, error: `Spinner check failed: ${spinnerUserResult.error}` };
+      return { success: false, error: `Sprayer check failed: ${sprayerUserResult.error}` };
     }
 
-    // 2. Check if we need to buy a spin
-    const totalLeft = spinnerUserResult.data.data?.totalLeft || 0;
+    // 2. Check if we need to buy a spray
+    const totalLeft = sprayerUserResult.data.data?.totalLeft || 0;
     
     if (totalLeft === 0) {
-      logActivity('🛒 No free spins left, buying a spin...');
+      logActivity('🛒 No free sprays left, buying a spray...');
       
-      // Buy a spin
-      const buySpinUrl = `${CONFIG.URL_SPRAYER}/buy-spin?categoryId=1`;
-      const buySpinResult = await makeAPIRequest(buySpinUrl, 'POST', headers, {
+      // Buy a spray
+      const buySprayUrl = `${CONFIG.URL_SPRAYER}/buy-spin?categoryId=1`;
+      const buySprayResult = await makeAPIRequest(buySprayUrl, 'POST', headers, {
         categoryId: 1,
         amount: 1
       });
 
-      if (!buySpinResult.success) {
-        return { success: false, error: `Buy spin failed: ${buySpinResult.error}` };
+      if (!buySprayResult.success) {
+        return { success: false, error: `Buy spray failed: ${buySprayResult.error}` };
       }
       
-      logActivity('✅ Spin purchased successfully');
+      logActivity('✅ Spray purchased successfully');
     } else if (totalLeft === 1) {
-      logActivity('🎉 Free spin available, skipping purchase');
+      logActivity('🎉 Free spray available, skipping purchase');
     }
 
-    // 3. Now execute the spin
-    const spinUrl = `${CONFIG.URL_SPRAYER}/spin?categoryId=1`;
-    const spinResult = await makeAPIRequest(spinUrl, 'POST', headers, {
-      spinnerId: 6865
+    // 3. Now execute the spray
+    const sprayUrl = `${CONFIG.URL_SPRAYER}/spin?categoryId=1`;
+    const sprayResult = await makeAPIRequest(sprayUrl, 'POST', headers, {
+      spinnerId: parseInt(sprayerId)
     });
 
-    if (!spinResult.success) {
-      return { success: false, error: `Spin failed: ${spinResult.error}` };
+    if (!sprayResult.success) {
+      return { success: false, error: `Spray failed: ${sprayResult.error}` };
     }
 
     // 4. Process the result
-    const spinData = spinResult.data.data;
-    const resultId = spinData.id;
+    const sprayData = sprayResult.data.data;
+    const resultId = sprayData.id;
     const prizeName = PRIZE_MAP[resultId] || `ID = ${resultId}`;
     userData.sprayCount++;
     
-    logActivity(`🎉 Manual spin successful! Received: ${prizeName}`);
+    logActivity(`🎉 Manual spray successful! Received: ${prizeName}`);
     return { success: true, prize: prizeName, prizeId: resultId };
     
   } catch (error) {
-    logActivity(`❌ Manual spin error: ${error.message}`);
+    logActivity(`❌ Manual spray error: ${error.message}`);
     return { success: false, error: error.message };
   }
 }
 
-// Execute multiple spins
-async function executeMultipleSpins(count) {
+// Execute multiple sprays
+async function executeMultipleSprays(count, sprayerId) {
   const results = [];
   let successful = 0;
   let failed = 0;
@@ -611,10 +612,10 @@ async function executeMultipleSpins(count) {
   
   for (let i = 0; i < count; i++) {
     try {
-      logActivity(`🔄 Manual spin ${i + 1}/${count} starting...`);
-      const result = await executeManualSpin();
+      logActivity(`🔄 Manual spray ${i + 1}/${count} starting...`);
+      const result = await executeManualSpray(sprayerId);
       results.push({
-        spin: i + 1,
+        spray: i + 1,
         success: result.success,
         prize: result.prize,
         prizeId: result.prizeId,
@@ -627,14 +628,14 @@ async function executeMultipleSpins(count) {
         failed++;
       }
       
-      // Add delay between spins
+      // Add delay between sprays
       if (i < count - 1) {
         await new Promise(resolve => setTimeout(resolve, 2700));
       }
       
     } catch (error) {
       results.push({
-        spin: i + 1,
+        spray: i + 1,
         success: false,
         error: error.message,
         timestamp: new Date().toISOString()
@@ -648,7 +649,7 @@ async function executeMultipleSpins(count) {
   
   // Calculate statistics
   const fundsSpent = (initialFunds || 0) - (finalFunds || 0);
-  const silverPerSpin = successful > 0 ? fundsSpent / successful : 0;
+  const silverPerSpray = successful > 0 ? fundsSpent / successful : 0;
   const totalSilverValue = count * 1000;
   const returnPercentage = totalSilverValue > 0 ? ((totalSilverValue - fundsSpent) / totalSilverValue) * 100 : 0;
   
@@ -661,23 +662,57 @@ async function executeMultipleSpins(count) {
       initialFunds: initialFunds || 0,
       finalFunds: finalFunds || 0,
       fundsSpent,
-      silverPerSpin,
+      silverPerSpray,
       returnPercentage: returnPercentage.toFixed(2)
     },
     results
   };
 }
 
-// Get user packs
+// Get user packs with pagination
 async function getUserPacks() {
   if (!userData.jwtToken) {
     return { success: false, error: 'No JWT token available' };
   }
   
   const headers = { 'x-user-jwt': userData.jwtToken };
-  const url = `${CONFIG.URL_PACK4EK}`;
   
-  return await makeAPIRequest(url, 'GET', headers);
+  try {
+    let allPacks = [];
+    let page = 1;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const url = `${CONFIG.URL_PACK4EK}?page=${page}&categoryIds=1`;
+      const result = await makeAPIRequest(url, 'GET', headers);
+      
+      if (!result.success) {
+        if (page === 1) {
+          return result;
+        } else {
+          break;
+        }
+      }
+      
+      if (result.data.data?.packs) {
+        allPacks = allPacks.concat(result.data.data.packs);
+        
+        if (result.data.data.packs.length === 0 || 
+            (result.data.data.count * page) >= result.data.data.total) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+    
+    return { success: true, data: { packs: allPacks } };
+    
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
 // Open a pack
@@ -691,10 +726,23 @@ async function openPack(packId) {
     'Content-Type': 'application/json'
   };
   
-  const url = `${CONFIG.URL_PACK0PEN}`;
+  const url = CONFIG.URL_PACK0PEN;
   const data = { categoryId: 1, packId };
   
   return await makeAPIRequest(url, 'POST', headers, data);
+}
+
+// Get card template details
+async function getCardTemplates(templateIds) {
+  if (!userData.jwtToken || templateIds.length === 0) {
+    return { success: false, error: 'No token or empty template IDs' };
+  }
+  
+  const headers = { 'x-user-jwt': userData.jwtToken };
+  const idsParam = templateIds.join('%2C');
+  const url = `${CONFIG.URL_CARD_TEMPLATE}?ids=${idsParam}`;
+  
+  return await makeAPIRequest(url, 'GET', headers);
 }
 
 // ======================= SCHEDULING & INITIALIZATION =======================
@@ -775,14 +823,14 @@ function scheduleDailyPlan() {
 }
 
 // Continuous operations
-function startContinuousOperations() {
+function startContinuousOperations(sprayerId) {
   console.log('🚀 Starting continuous operations...');
   
-  // Spin operations - check every 30 seconds
+  // Spray operations - check every 30 seconds
   setInterval(async () => {
     if (userData.isActive && isWithinActiveWindow()) {
-      if (!userData.nextSpinTime || new Date() >= new Date(userData.nextSpinTime)) {
-        await executeSpin();
+      if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
+        await executeScheduledSpray(sprayerId);
       }
     }
   }, 30000);
@@ -795,10 +843,10 @@ function startContinuousOperations() {
   }, 5 * 60 * 60 * 1000);
 }
 
-// Initialize the spin service
+// Initialize the spray service
 async function initialize() {
   try {
-    console.log('🚀 INITIALIZING SPINNER SERVICE...');
+    console.log('🚀 INITIALIZING SPRAYER SERVICE...');
     
     // Refresh token
     await refreshToken();
@@ -813,14 +861,14 @@ async function initialize() {
       // Check funds
       checkFunds();
       
-      // Start continuous operations
-      startContinuousOperations();
+      // Start continuous operations - default sprayerId 6865 will be overridden by frontend
+      startContinuousOperations(6865);
     }, 60000);
     
-    console.log('✅ Spinner service initialized successfully');
+    console.log('✅ Sprayer service initialized successfully');
     
   } catch (error) {
-    console.error('❌ Failed to initialize spinner service:', error);
+    console.error('❌ Failed to initialize sprayer service:', error);
   }
 }
 
@@ -885,8 +933,9 @@ app.post('/api/refresh', async (req, res) => {
   res.json({ success, message: success ? 'Token refreshed' : 'Refresh failed' });
 });
 
-app.post('/api/spin', async (req, res) => {
-  const result = await executeSpin();
+app.post('/api/scheduled-spray', async (req, res) => {
+  const { sprayerId = 6865 } = req.body;
+  const result = await executeScheduledSpray(sprayerId);
   res.json({ success: !!result, result });
 });
 
@@ -900,10 +949,11 @@ app.post('/api/check-funds', async (req, res) => {
   res.json({ success: funds !== null, funds });
 });
 
-// Manual spin endpoint with buy spin logic
-app.post('/api/proxy/manual-spin', async (req, res) => {
+// Manual spray endpoint with buy spray logic
+app.post('/api/proxy/manual-spray', async (req, res) => {
   try {
-    const result = await executeManualSpin();
+    const { sprayerId = 6865 } = req.body;
+    const result = await executeManualSpray(sprayerId);
     res.json(result);
   } catch (error) {
     res.status(500).json({ 
@@ -913,11 +963,11 @@ app.post('/api/proxy/manual-spin', async (req, res) => {
   }
 });
 
-// Multiple manual spins
-app.post('/api/proxy/multiple-spins', async (req, res) => {
+// Multiple manual sprays
+app.post('/api/proxy/multiple-sprays', async (req, res) => {
   try {
-    const { count = 1 } = req.body;
-    const results = await executeMultipleSpins(count);
+    const { count = 1, sprayerId = 6865 } = req.body;
+    const results = await executeMultipleSprays(count, sprayerId);
     res.json(results);
   } catch (error) {
     res.status(500).json({ 
@@ -932,7 +982,7 @@ app.get('/api/proxy/packs', async (req, res) => {
   try {
     const result = await getUserPacks();
     if (result.success) {
-      res.json(result.data);
+      res.json(result);
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -946,7 +996,21 @@ app.post('/api/proxy/open-pack', async (req, res) => {
     const { packId } = req.body;
     const result = await openPack(packId);
     if (result.success) {
-      res.json(result.data);
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/proxy/card-templates', async (req, res) => {
+  try {
+    const { templateIds } = req.body;
+    const result = await getCardTemplates(templateIds);
+    if (result.success) {
+      res.json(result);
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -959,10 +1023,10 @@ app.post('/api/proxy/open-pack', async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Spinner server running on port ${PORT}`);
+  console.log(`🚀 Sprayer server running on port ${PORT}`);
   console.log(`📊 Dashboard available at http://localhost:${PORT} (or your Render URL)`);
   
-  // Initialize spinner service (delayed to ensure token refresh first)
+  // Initialize sprayer service (delayed to ensure token refresh first)
   setTimeout(() => {
     initialize();
   }, 5000);

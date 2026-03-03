@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spayer Dashboard</title>
+    <title>Sprayer Dashboard</title>
     <style>
         :root {
             --primary: #0891b2;
@@ -352,7 +352,7 @@
         
         .results-container {
             margin-top: 15px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -375,6 +375,15 @@
         
         .result-item.error {
             border-left-color: var(--danger);
+        }
+        
+        .result-item .card-detail {
+            margin-left: 15px;
+            font-size: 11px;
+            color: var(--secondary);
+            border-left: 1px solid var(--border);
+            padding-left: 8px;
+            margin-top: 4px;
         }
         
         .prize-info {
@@ -407,6 +416,7 @@
             display: flex;
             gap: 2px;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
         }
         
         .tab-button {
@@ -434,6 +444,114 @@
             display: block;
         }
         
+        .sprayer-id-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--chip);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .sprayer-id-input label {
+            margin: 0;
+            white-space: nowrap;
+        }
+        
+        .sprayer-id-input input {
+            width: 100px;
+            text-align: center;
+        }
+        
+        .pack-group {
+            margin-bottom: 15px;
+            border-left: 3px solid var(--primary);
+            padding-left: 15px;
+        }
+        
+        .pack-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .pack-group-header:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .pack-count {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .ids-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .ids-container.show {
+            display: block;
+        }
+        
+        .ids-row {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 2px 5px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+        }
+        
+        .open-controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .open-control-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .select-group {
+            margin: 10px 0;
+        }
+        
+        select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            width: 100%;
+        }
+        
+        .copy-button {
+            background-color: #607d8b;
+            margin-left: 10px;
+        }
+        
+        .copy-button:hover {
+            background-color: #455a64;
+        }
+        
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -448,7 +566,7 @@
 <body>
     <header>
         <div>
-            <h1>🎰 Spinner <span class="accent">Dashboard</span> <span id="weekendIndicator" class="weekend" style="display:none;">(Weekend Mode)</span></h1>
+            <h1>🎰 Sprayer <span class="accent">Dashboard</span> <span id="weekendIndicator" class="weekend" style="display:none;">(Weekend Mode)</span></h1>
             <div class="auto-refresh">
                 <input type="checkbox" id="autoRefresh" checked />
                 <label for="autoRefresh">Auto-refresh (10s)</label>
@@ -459,6 +577,7 @@
             <button class="btn" id="refreshTokenBtn">🔑 Refresh Token</button>
             <button class="btn" id="claimBtn">🏆 Claim Achievements</button>
             <button class="btn" id="fundsBtn">💰 Check Funds</button>
+            <button class="btn" id="scheduledSprayBtn">⏰ Scheduled Spray</button>
         </div>
     </header>
 
@@ -501,8 +620,8 @@
                 </div>
                 <div class="card-content">
                     <div class="info-grid">
-                        <div class="info-label">Total Spins:</div>
-                        <div class="info-value" id="totalSpins">0</div>
+                        <div class="info-label">Total Sprays:</div>
+                        <div class="info-value" id="totalSprays">0</div>
                         
                         <div class="info-label">Achievements Claimed:</div>
                         <div class="info-value" id="achievementsClaimed">0</div>
@@ -513,9 +632,9 @@
                         <div class="info-label">Funds Checks Today:</div>
                         <div class="info-value" id="fundsChecks">0</div>
                         
-                        <div class="info-label">Next Spin:</div>
+                        <div class="info-label">Next Spray:</div>
                         <div class="info-value">
-                            <div class="time-display" id="nextSpinTime">—</div>
+                            <div class="time-display" id="nextSprayTime">—</div>
                             <div id="nextSprayCountdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
                         </div>
                     </div>
@@ -535,8 +654,8 @@
                         <div class="info-label">End Time (CET):</div>
                         <div class="info-value" id="dayEnd">23:59</div>
                         
-                        <div class="info-label">Spin Interval:</div>
-                        <div class="info-value" id="spinInterval">30+0-21m</div>
+                        <div class="info-label">Spray Interval:</div>
+                        <div class="info-value" id="sprayInterval">30+0-21m</div>
                         
                         <div class="info-label">Achievement #1:</div>
                         <div class="info-value">
@@ -560,6 +679,23 @@
             </div>
         </div>
 
+        <!-- Sprayer ID Control -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h2>Sprayer Configuration</h2>
+            </div>
+            <div class="card-content">
+                <div class="sprayer-id-input">
+                    <label for="sprayerId">Sprayer ID:</label>
+                    <input type="number" id="sprayerId" min="1" value="6865">
+                    <small style="color: var(--secondary);">This value is used for all spray operations (scheduled and manual)</small>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--muted);">
+                    ⚠️ Changes take effect immediately on next spray. No need to restart.
+                </div>
+            </div>
+        </div>
+
         <!-- Tabs for Tools -->
         <div class="card">
             <div class="card-header">
@@ -568,45 +704,46 @@
             <div class="card-content">
                 <div class="tab-container">
                     <div class="tab-buttons">
-                        <button class="tab-button active" data-tab="spinner">🎰 Spinner Tool</button>
+                        <button class="tab-button active" data-tab="sprayer">🎰 Sprayer Tool</button>
                         <button class="tab-button" data-tab="pack">📦 Pack Opener</button>
                     </div>
                     
-                    <!-- Spinner Tool Tab -->
-                    <div class="tab-content active" id="tab-spinner">
+                    <!-- Sprayer Tool Tab -->
+                    <div class="tab-content active" id="tab-sprayer">
                         <p style="color: var(--secondary); margin-bottom: 20px; font-size: 14px;">
-                            Execute multiple spins. Each spin costs 1000 silvercoins if no free spins are available.
+                            Execute multiple sprays. Each spray costs 1000 silvercoins if no free sprays are available.
+                            Uses Sprayer ID from configuration above.
                         </p>
                         
                         <div class="form-group">
-                            <label for="sprayCount">Number of spins:</label>
+                            <label for="sprayCount">Number of sprays:</label>
                             <input type="number" id="sprayCount" min="1" max="10000" value="10">
                         </div>
                         
                         <div class="btn-group">
-                            <button id="startSpinsBtn" class="btn btn-primary">
-                                <span id="spinIcon">🎰</span> Start Spinning
+                            <button id="startSpraysBtn" class="btn btn-primary">
+                                <span id="sprayIcon">🎰</span> Start Spraying
                             </button>
-                            <button id="stopSpinsBtn" class="btn btn-danger" disabled>
+                            <button id="stopSpraysBtn" class="btn btn-danger" disabled>
                                 ⏹️ Stop
                             </button>
                         </div>
                         
-                        <div id="spinProgress" class="progress-container" style="display: none;">
-                            <div class="progress-bar" id="spinProgressBar"></div>
+                        <div id="sprayProgress" class="progress-container" style="display: none;">
+                            <div class="progress-bar" id="sprayProgressBar"></div>
                         </div>
                         
-                        <div id="spinStats" class="stats-grid" style="display: none;">
+                        <div id="sprayStats" class="stats-grid" style="display: none;">
                             <div class="stat-box">
-                                <div class="stat-value" id="completedSpins">0</div>
+                                <div class="stat-value" id="completedSprays">0</div>
                                 <div class="stat-label">Completed</div>
                             </div>
                             <div class="stat-box">
-                                <div class="stat-value" id="successfulSpins">0</div>
+                                <div class="stat-value" id="successfulSprays">0</div>
                                 <div class="stat-label">Successful</div>
                             </div>
                             <div class="stat-box">
-                                <div class="stat-value" id="failedSpins">0</div>
+                                <div class="stat-value" id="failedSprays">0</div>
                                 <div class="stat-label">Failed</div>
                             </div>
                             <div class="stat-box">
@@ -635,53 +772,64 @@
                         </div>
                         
                         <h3>Results:</h3>
-                        <div id="spinResults" class="results-container">
+                        <div id="sprayResults" class="results-container">
                             <div style="text-align: center; color: var(--secondary); padding: 20px;">
-                                No spins executed yet. Results will appear here.
+                                No sprays executed yet. Results will appear here.
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Pack Opener Tab -->
+                    <!-- Pack Opener Tab (Enhanced) -->
                     <div class="tab-content" id="tab-pack">
                         <p style="color: var(--secondary); margin-bottom: 20px; font-size: 14px;">
-                            Find and open packs by name. Packs are sorted by ID (lowest first).
+                            Find and open packs by name. Packs are grouped by type and sorted by ID.
                         </p>
                         
-                        <div class="form-group">
-                            <label for="packName">Pack name to search:</label>
-                            <input type="text" id="packName" value="IEM Krakow 2026: Player Pack">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="packsToOpen">Packs to open (max):</label>
-                            <input type="number" id="packsToOpen" min="1" max="50" value="5">
-                        </div>
-                        
                         <div class="btn-group">
-                            <button id="findPacksBtn" class="btn btn-primary">
-                                <span id="findIcon">🔍</span> Find Packs
-                            </button>
-                            <button id="openPacksBtn" class="btn btn-success" disabled>
-                                <span id="openIcon">📦</span> Open Packs
-                            </button>
-                            <button id="stopPacksBtn" class="btn btn-danger" disabled>
-                                ⏹️ Stop
+                            <button id="checkAllPacksBtn" class="btn btn-primary">
+                                <span>🔍</span> Check All Packs
                             </button>
                         </div>
                         
-                        <div id="packProgress" class="progress-container" style="display: none;">
-                            <div class="progress-bar" id="packProgressBar"></div>
+                        <div id="packStatsContainer" style="margin-top: 20px; display: none;">
+                            <h3>Pack Statistics</h3>
+                            <div id="totalPacks"></div>
+                            <div id="packGroups"></div>
                         </div>
                         
-                        <div id="packInfo" style="display: none; margin-top: 20px;">
-                            <h3>Available Packs:</h3>
-                            <div id="packList" class="results-container" style="max-height: 200px;">
-                                Loading packs...
+                        <div id="openPacksSection" style="margin-top: 20px; display: none;">
+                            <h3>Open Packs</h3>
+                            
+                            <div class="open-controls">
+                                <div class="open-control-item">
+                                    <label for="packGroupSelect">Select Pack Group:</label>
+                                    <select id="packGroupSelect">
+                                        <option value="">-- Select a pack type --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="open-control-item">
+                                    <label for="packsToOpen">Number of packs to open:</label>
+                                    <input type="number" id="packsToOpen" min="1" value="1">
+                                </div>
+                                
+                                <div class="open-control-item checkbox-group">
+                                    <input type="checkbox" id="openOldestFirst" checked>
+                                    <label for="openOldestFirst">Open oldest packs first (smallest IDs)</label>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button id="openPacksBtn" class="btn btn-success">Start Opening Packs</button>
+                                <button id="stopOpenPacksBtn" class="btn btn-danger" style="display: none;">Stop Opening</button>
+                            </div>
+                            
+                            <div id="packOpenProgress" class="progress-container" style="display: none;">
+                                <div class="progress-bar" id="packOpenProgressBar"></div>
                             </div>
                         </div>
                         
-                        <h3>Opening Results:</h3>
+                        <h3 style="margin-top: 20px;">Opening Results:</h3>
                         <div id="packResults" class="results-container">
                             <div style="text-align: center; color: var(--secondary); padding: 20px;">
                                 No packs opened yet.
@@ -712,20 +860,25 @@
         // Configuration
         let refreshInterval = null;
         let lastData = null;
-        let isSpinning = false;
+        let isSpraying = false;
         let isOpeningPacks = false;
         let stopRequested = false;
-        let availablePacks = [];
+        
+        // Pack management variables
+        let allPacks = [];
+        let packGroups = {};
+        let selectedGroupPacks = [];
         
         // Prize mapping
         const prizeMap = {
-            11755: "5,000 Silvercoins",
-            11749: "500 Silvercoins",
-            11754: "1,000,000 Silvercoins",
-            11753: "100,000 Silvercoins",
-            11752: "2,500 Silvercoins",
-            11751: "1,000 Silvercoins",
-            11750: "Core Standard Pack"
+            11986: "5,000 Silvercoins",
+            11981: "Core 2026 Standard Pack",
+            12013: "EPL 23 Pack",
+            11980: "500 Silvercoins",
+            11985: "1,000,000 Silvercoins",
+            11984: "100,000 Silvercoins",
+            11983: "2,500 Silvercoins",
+            11982: "1,000 Silvercoins"
         };
         
         // ============== DATE FORMATTING ==============
@@ -788,12 +941,16 @@
             }
         }
         
-        async function performAction(endpoint) {
+        async function performAction(endpoint, data = {}) {
             try {
-                const response = await fetch(endpoint, { method: 'POST' });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Action failed');
-                return data;
+                const response = await fetch(endpoint, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const responseData = await response.json();
+                if (!response.ok) throw new Error(responseData.message || 'Action failed');
+                return responseData;
             } catch (error) {
                 alert(`Error: ${error.message}`);
                 throw error;
@@ -836,19 +993,19 @@
         }
         
         function updateStatistics(data) {
-            document.getElementById('totalSpins').textContent = data.sprayCount || 0;
+            document.getElementById('totalSprays').textContent = data.sprayCount || 0;
             document.getElementById('achievementsClaimed').textContent = data.achievementsClaimed || 0;
             document.getElementById('currentFunds').textContent = data.lastFunds?.toLocaleString() || '0';
             document.getElementById('fundsChecks').textContent = data.dailyFundsChecks || 0;
             
-            // Next spin
-            const nextSpinEl = document.getElementById('nextSpinTime');
+            // Next spray
+            const nextSprayEl = document.getElementById('nextSprayTime');
             const countdownEl = document.getElementById('nextSprayCountdown');
-            if (data.nextSpinTime) {
-                nextSpinEl.textContent = formatTime(data.nextSpinTime);
-                countdownEl.textContent = timeUntil(data.nextSpinTime);
+            if (data.nextSprayTime) {
+                nextSprayEl.textContent = formatTime(data.nextSprayTime);
+                countdownEl.textContent = timeUntil(data.nextSprayTime);
             } else {
-                nextSpinEl.textContent = '—';
+                nextSprayEl.textContent = '—';
                 countdownEl.textContent = '';
             }
         }
@@ -856,7 +1013,7 @@
         function updateSchedule(data) {
             document.getElementById('dayStart').textContent = `${data.dayStart} ±${data.jitter}m`;
             document.getElementById('dayEnd').textContent = data.dayEnd;
-            document.getElementById('spinInterval').textContent = 
+            document.getElementById('sprayInterval').textContent = 
                 `${data.baseInterval}+${data.randomScale1}-${data.randomScale2}m`;
             
             // Calculate achievement times
@@ -922,20 +1079,33 @@
             }
         }
         
-        // ============== SPINNER FUNCTIONS ==============
-        async function executeMultipleSpins(count) {
-            if (isSpinning) return;
+        // ============== SPRAYER FUNCTIONS ==============
+        async function executeScheduledSpray() {
+            const sprayerId = document.getElementById('sprayerId').value;
+            try {
+                const result = await performAction('/api/scheduled-spray', { sprayerId });
+                await updateAll();
+                return result;
+            } catch (error) {
+                console.error('Scheduled spray failed:', error);
+            }
+        }
+        
+        async function executeMultipleSprays(count) {
+            if (isSpraying) return;
             
-            isSpinning = true;
+            isSpraying = true;
             stopRequested = false;
             
-            const startBtn = document.getElementById('startSpinsBtn');
-            const stopBtn = document.getElementById('stopSpinsBtn');
-            const progress = document.getElementById('spinProgress');
-            const progressBar = document.getElementById('spinProgressBar');
-            const stats = document.getElementById('spinStats');
+            const sprayerId = document.getElementById('sprayerId').value;
+            
+            const startBtn = document.getElementById('startSpraysBtn');
+            const stopBtn = document.getElementById('stopSpraysBtn');
+            const progress = document.getElementById('sprayProgress');
+            const progressBar = document.getElementById('sprayProgressBar');
+            const stats = document.getElementById('sprayStats');
             const summaryStats = document.getElementById('summaryStats');
-            const results = document.getElementById('spinResults');
+            const results = document.getElementById('sprayResults');
             
             startBtn.disabled = true;
             stopBtn.disabled = false;
@@ -945,16 +1115,16 @@
             
             // Reset UI
             results.innerHTML = '';
-            document.getElementById('completedSpins').textContent = '0';
-            document.getElementById('successfulSpins').textContent = '0';
-            document.getElementById('failedSpins').textContent = '0';
+            document.getElementById('completedSprays').textContent = '0';
+            document.getElementById('successfulSprays').textContent = '0';
+            document.getElementById('failedSprays').textContent = '0';
             document.getElementById('estimatedTime').textContent = `${Math.round(count * 2.7)}s`;
             
             try {
-                const response = await fetch('/api/proxy/multiple-spins', {
+                const response = await fetch('/api/proxy/multiple-sprays', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ count })
+                    body: JSON.stringify({ count, sprayerId })
                 });
                 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -962,7 +1132,7 @@
                 const data = await response.json();
                 
                 if (!data.success) {
-                    throw new Error(data.error || 'Failed to execute spins');
+                    throw new Error(data.error || 'Failed to execute sprays');
                 }
                 
                 // Display individual results
@@ -973,13 +1143,13 @@
                         resultDiv.className = 'result-item success';
                         const prizeName = prizeMap[result.prizeId] || `ID = ${result.prizeId}`;
                         resultDiv.innerHTML = `
-                            <strong>Spin ${result.spin}:</strong> ${prizeName}
+                            <strong>Spray ${result.spray}:</strong> ${prizeName}
                             <div class="prize-info">${new Date(result.timestamp).toLocaleTimeString()}</div>
                         `;
                     } else {
                         resultDiv.className = 'result-item error';
                         resultDiv.innerHTML = `
-                            <strong>Spin ${result.spin}:</strong> Failed
+                            <strong>Spray ${result.spray}:</strong> Failed
                             <div class="prize-info">Error: ${result.error || 'Unknown error'}</div>
                         `;
                     }
@@ -990,13 +1160,18 @@
                     const progressPercent = ((index + 1) / count) * 100;
                     progressBar.style.width = `${progressPercent}%`;
                     progressBar.textContent = `${Math.round(progressPercent)}%`;
-                    document.getElementById('completedSpins').textContent = index + 1;
+                    document.getElementById('completedSprays').textContent = index + 1;
+                    if (result.success) {
+                        document.getElementById('successfulSprays').textContent = parseInt(document.getElementById('successfulSprays').textContent) + 1;
+                    } else {
+                        document.getElementById('failedSprays').textContent = parseInt(document.getElementById('failedSprays').textContent) + 1;
+                    }
                 });
                 
-                // Update statistics
-                document.getElementById('completedSpins').textContent = data.summary.totalRequested;
-                document.getElementById('successfulSpins').textContent = data.summary.successful;
-                document.getElementById('failedSpins').textContent = data.summary.failed;
+                // Update final statistics
+                document.getElementById('completedSprays').textContent = data.summary.totalRequested;
+                document.getElementById('successfulSprays').textContent = data.summary.successful;
+                document.getElementById('failedSprays').textContent = data.summary.failed;
                 
                 // Show summary
                 summaryStats.style.display = 'grid';
@@ -1010,7 +1185,7 @@
                 summaryDiv.className = 'result-item';
                 summaryDiv.innerHTML = `
                     <strong>Summary:</strong><br>
-                    • Total spins: ${data.summary.totalRequested}<br>
+                    • Total sprays: ${data.summary.totalRequested}<br>
                     • Successful: ${data.summary.successful}<br>
                     • Failed: ${data.summary.failed}<br>
                     • Initial funds: ${data.summary.initialFunds?.toLocaleString() || '0'}<br>
@@ -1022,7 +1197,7 @@
                 results.appendChild(summaryDiv);
                 
             } catch (error) {
-                console.error('Spin execution error:', error);
+                console.error('Spray execution error:', error);
                 
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'result-item error';
@@ -1038,79 +1213,174 @@
             // Reset UI
             startBtn.disabled = false;
             stopBtn.disabled = true;
-            isSpinning = false;
+            isSpraying = false;
         }
         
-        // ============== PACK FUNCTIONS ==============
-        async function findPacks() {
-            const packName = document.getElementById('packName').value.trim();
-            if (!packName) {
-                alert('Please enter a pack name');
-                return;
-            }
+        // ============== ENHANCED PACK FUNCTIONS ==============
+        async function checkAllPacks() {
+            const checkBtn = document.getElementById('checkAllPacksBtn');
+            const originalText = checkBtn.innerHTML;
             
-            const findBtn = document.getElementById('findPacksBtn');
-            const openBtn = document.getElementById('openPacksBtn');
-            const packInfo = document.getElementById('packInfo');
-            const packList = document.getElementById('packList');
-            
-            findBtn.disabled = true;
-            findBtn.innerHTML = '<span class="loading"></span> Searching...';
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<span class="loading"></span> Checking...';
             
             try {
                 const response = await fetch('/api/proxy/packs');
                 if (!response.ok) throw new Error('Failed to fetch packs');
                 
-                const data = await response.json();
+                const result = await response.json();
                 
-                if (!data.success || !data.data?.packs) {
+                if (!result.success || !result.data?.packs) {
                     throw new Error('Invalid response from server');
                 }
                 
-                availablePacks = data.data.packs
-                    .filter(pack => pack.packTemplate?.name === packName)
-                    .sort((a, b) => a.id - b.id);
+                allPacks = result.data.packs;
+                packGroups = groupPacksByName(allPacks);
                 
-                packInfo.style.display = 'block';
+                // Display statistics
+                displayPackStatistics();
                 
-                if (availablePacks.length === 0) {
-                    packList.innerHTML = `<div style="text-align: center; color: var(--secondary); padding: 20px;">
-                        No packs found with name "${packName}"
-                    </div>`;
-                    openBtn.disabled = true;
-                } else {
-                    const packHtml = availablePacks.map(pack => `
-                        <div class="result-item" style="margin-bottom: 5px;">
-                            <strong>ID:</strong> ${pack.id}<br>
-                            <small>Template: ${pack.packTemplate?.name || 'Unknown'}</small>
-                        </div>
-                    `).join('');
-                    
-                    packList.innerHTML = packHtml;
-                    openBtn.disabled = false;
-                    
-                    const packsToOpenInput = document.getElementById('packsToOpen');
-                    packsToOpenInput.max = availablePacks.length;
-                    if (parseInt(packsToOpenInput.value) > availablePacks.length) {
-                        packsToOpenInput.value = availablePacks.length;
-                    }
-                }
+                // Populate pack group select
+                populatePackGroupSelect();
+                
+                // Show open section
+                document.getElementById('packStatsContainer').style.display = 'block';
+                document.getElementById('openPacksSection').style.display = 'block';
                 
             } catch (error) {
-                console.error('Failed to find packs:', error);
-                alert(`Error finding packs: ${error.message}`);
+                console.error('Failed to check packs:', error);
+                alert(`Error checking packs: ${error.message}`);
             } finally {
-                findBtn.disabled = false;
-                findBtn.innerHTML = '<span id="findIcon">🔍</span> Find Packs';
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = originalText;
+            }
+        }
+        
+        function groupPacksByName(packs) {
+            const groups = {};
+            
+            packs.forEach(pack => {
+                const packName = pack.packTemplate ? pack.packTemplate.name : 'Unknown Pack';
+                if (!groups[packName]) {
+                    groups[packName] = [];
+                }
+                groups[packName].push(pack);
+            });
+            
+            // Sort packs within each group by ID
+            Object.keys(groups).forEach(key => {
+                groups[key].sort((a, b) => a.id - b.id);
+            });
+            
+            return groups;
+        }
+        
+        function displayPackStatistics() {
+            const totalCount = allPacks.length;
+            document.getElementById('totalPacks').innerHTML = `<h3>Total Packs: <span class="pack-count">${totalCount}</span></h3>`;
+            
+            let groupsHtml = '<h3>Packs by Type:</h3>';
+            
+            Object.keys(packGroups).sort().forEach(packName => {
+                const packs = packGroups[packName];
+                const safeId = `ids-${packName.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                
+                groupsHtml += `
+                    <div class="pack-group">
+                        <div class="pack-group-header" onclick="togglePackIds('${safeId}')">
+                            <span>${packName}</span>
+                            <span class="pack-count">${packs.length} packs</span>
+                        </div>
+                        <div id="${safeId}" class="ids-container">
+                            ${packs.map(p => `<span class="ids-row">${p.id}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('packGroups').innerHTML = groupsHtml;
+        }
+        
+        window.togglePackIds = function(id) {
+            const container = document.getElementById(id);
+            if (container) {
+                container.classList.toggle('show');
+            }
+        };
+        
+        function populatePackGroupSelect() {
+            const select = document.getElementById('packGroupSelect');
+            select.innerHTML = '<option value="">-- Select a pack type --</option>';
+            
+            Object.keys(packGroups).sort().forEach(packName => {
+                const option = document.createElement('option');
+                option.value = packName;
+                option.textContent = `${packName} (${packGroups[packName].length} packs)`;
+                select.appendChild(option);
+            });
+        }
+        
+        function updateSelectedPackGroup() {
+            const selectedPackName = document.getElementById('packGroupSelect').value;
+            const openOldestFirst = document.getElementById('openOldestFirst').checked;
+            
+            if (selectedPackName && packGroups[selectedPackName]) {
+                selectedGroupPacks = [...packGroups[selectedPackName]];
+                
+                // Sort based on checkbox
+                if (openOldestFirst) {
+                    selectedGroupPacks.sort((a, b) => a.id - b.id);
+                } else {
+                    selectedGroupPacks.sort((a, b) => b.id - a.id);
+                }
+                
+                // Update max value
+                const packsToOpen = document.getElementById('packsToOpen');
+                packsToOpen.max = selectedGroupPacks.length;
+                if (parseInt(packsToOpen.value) > selectedGroupPacks.length) {
+                    packsToOpen.value = selectedGroupPacks.length;
+                }
+            } else {
+                selectedGroupPacks = [];
+            }
+        }
+        
+        async function fetchCardTemplates(templateIds) {
+            if (templateIds.length === 0) return {};
+            
+            try {
+                const response = await fetch('/api/proxy/card-templates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ templateIds })
+                });
+                
+                if (!response.ok) return {};
+                
+                const result = await response.json();
+                
+                if (result.success && result.data.data) {
+                    // Create a map of templateId -> template data
+                    const templateMap = {};
+                    result.data.data.forEach(template => {
+                        templateMap[template.id] = template;
+                    });
+                    return templateMap;
+                }
+                
+                return {};
+            } catch (error) {
+                console.error('Failed to fetch card templates:', error);
+                return {};
             }
         }
         
         async function openPacks() {
-            if (isOpeningPacks || availablePacks.length === 0) return;
+            if (isOpeningPacks || selectedGroupPacks.length === 0) return;
             
             const count = parseInt(document.getElementById('packsToOpen').value);
-            if (isNaN(count) || count < 1 || count > availablePacks.length) {
-                alert(`Please enter a valid number between 1 and ${availablePacks.length}`);
+            if (isNaN(count) || count < 1 || count > selectedGroupPacks.length) {
+                alert(`Please enter a valid number between 1 and ${selectedGroupPacks.length}`);
                 return;
             }
             
@@ -1118,21 +1388,22 @@
             stopRequested = false;
             
             const openBtn = document.getElementById('openPacksBtn');
-            const stopBtn = document.getElementById('stopPacksBtn');
-            const progress = document.getElementById('packProgress');
-            const progressBar = document.getElementById('packProgressBar');
+            const stopBtn = document.getElementById('stopOpenPacksBtn');
+            const progress = document.getElementById('packOpenProgress');
+            const progressBar = document.getElementById('packOpenProgressBar');
             const results = document.getElementById('packResults');
             
             openBtn.disabled = true;
-            stopBtn.disabled = false;
+            stopBtn.style.display = 'inline-block';
             progress.style.display = 'block';
             
             results.innerHTML = '';
             
+            const packsToOpenList = selectedGroupPacks.slice(0, count);
             let opened = 0;
             
-            for (let i = 0; i < count && i < availablePacks.length && !stopRequested; i++) {
-                const pack = availablePacks[i];
+            for (let i = 0; i < packsToOpenList.length && !stopRequested; i++) {
+                const pack = packsToOpenList[i];
                 
                 opened++;
                 const progressPercent = (opened / count) * 100;
@@ -1140,6 +1411,7 @@
                 progressBar.textContent = `${Math.round(progressPercent)}%`;
                 
                 try {
+                    // Open the pack
                     const response = await fetch('/api/proxy/open-pack', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1148,70 +1420,94 @@
                     
                     const result = await response.json();
                     
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to open pack');
+                    }
+                    
+                    const packData = result.data;
+                    
+                    // Create result div
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'result-item success';
                     
-                    if (result.data?.cards) {
-                        resultDiv.innerHTML = `
-                            <strong>Pack ${opened} (ID: ${pack.id}):</strong> ${result.data.cards.length} cards received<br>
-                            <small>${new Date().toLocaleTimeString()}</small>
-                        `;
-                    } else {
-                        resultDiv.innerHTML = `
-                            <strong>Pack ${opened} (ID: ${pack.id}):</strong> Opened<br>
-                            <small>${new Date().toLocaleTimeString()}</small>
-                        `;
+                    let resultHtml = `<strong>Pack ${opened} (ID: ${pack.id}):</strong> Opened<br>`;
+                    
+                    // Process cards if they exist
+                    if (packData.data?.cards && packData.data.cards.length > 0) {
+                        const cards = packData.data.cards;
+                        
+                        // Collect template IDs
+                        const templateIds = cards.map(card => card.cardTemplateId).filter(id => id);
+                        
+                        // Fetch template details
+                        const templateMap = await fetchCardTemplates(templateIds);
+                        
+                        // Add each card to the result
+                        cards.forEach((card, index) => {
+                            const template = templateMap[card.cardTemplateId];
+                            const title = template ? template.title : 'Unknown';
+                            const inCirculation = template ? template.inCirculation || '?' : '?';
+                            const minted = template ? template.minted || '?' : '?';
+                            
+                            resultHtml += `
+                                <div class="card-detail">
+                                    • ${card.type} ${card.mintBatch}${card.mintNumber} - ${title} (${inCirculation}/${minted})
+                                </div>
+                            `;
+                        });
                     }
                     
+                    // Add stickers if they exist
+                    if (packData.data?.stickers && packData.data.stickers.length > 0) {
+                        packData.data.stickers.forEach(sticker => {
+                            resultHtml += `
+                                <div class="card-detail">
+                                    • ${sticker.type} ${sticker.mintBatch}${sticker.mintNumber}
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    resultHtml += `<div class="prize-info">${new Date().toLocaleTimeString()}</div>`;
+                    resultDiv.innerHTML = resultHtml;
                     results.appendChild(resultDiv);
                     
                 } catch (error) {
                     console.error('Failed to open pack:', error);
                     
-                    const resultDiv = document.createElement('div');
-                    resultDiv.className = 'result-item error';
-                    resultDiv.innerHTML = `
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'result-item error';
+                    errorDiv.innerHTML = `
                         <strong>Pack ${opened} (ID: ${pack.id}):</strong> Failed to open<br>
                         <small>Error: ${error.message}</small><br>
                         <small>${new Date().toLocaleTimeString()}</small>
                     `;
-                    results.appendChild(resultDiv);
+                    results.appendChild(errorDiv);
                 }
                 
                 results.scrollTop = results.scrollHeight;
                 
                 if (i < count - 1 && !stopRequested) {
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 2700));
                 }
             }
             
-            availablePacks = availablePacks.slice(opened);
+            // Remove opened packs
+            selectedGroupPacks = selectedGroupPacks.slice(packsToOpenList.length);
             
-            const packList = document.getElementById('packList');
-            if (availablePacks.length === 0) {
-                packList.innerHTML = `<div style="text-align: center; color: var(--secondary); padding: 20px;">
-                    All packs opened
-                </div>`;
-                openBtn.disabled = true;
-            } else {
-                const packHtml = availablePacks.map(pack => `
-                    <div class="result-item" style="margin-bottom: 5px;">
-                        <strong>ID:</strong> ${pack.id}<br>
-                        <small>Template: ${pack.packTemplate?.name || 'Unknown'}</small>
-                    </div>
-                `).join('');
-                
-                packList.innerHTML = packHtml;
-                
-                const packsToOpenInput = document.getElementById('packsToOpen');
-                packsToOpenInput.max = availablePacks.length;
-                if (parseInt(packsToOpenInput.value) > availablePacks.length) {
-                    packsToOpenInput.value = availablePacks.length;
-                }
+            // Update pack groups
+            const selectedPackName = document.getElementById('packGroupSelect').value;
+            if (selectedPackName && packGroups[selectedPackName]) {
+                packGroups[selectedPackName] = selectedGroupPacks;
             }
             
+            // Update statistics
+            displayPackStatistics();
+            populatePackGroupSelect();
+            
+            // Reset UI
             openBtn.disabled = false;
-            stopBtn.disabled = true;
+            stopBtn.style.display = 'none';
             progress.style.display = 'none';
             isOpeningPacks = false;
         }
@@ -1240,29 +1536,36 @@
             } catch (error) {}
         });
         
+        document.getElementById('scheduledSprayBtn').addEventListener('click', executeScheduledSpray);
+        
         document.getElementById('clearLogsBtn').addEventListener('click', () => {
             alert('Log clearing not implemented in this version');
         });
         
-        document.getElementById('startSpinsBtn').addEventListener('click', () => {
+        document.getElementById('startSpraysBtn').addEventListener('click', () => {
             const count = parseInt(document.getElementById('sprayCount').value);
             if (isNaN(count) || count < 1 || count > 100000) {
-                alert('Please enter a valid number of spins (1-100000)');
+                alert('Please enter a valid number of sprays (1-100000)');
                 return;
             }
-            executeMultipleSpins(count);
+            executeMultipleSprays(count);
         });
         
-        document.getElementById('stopSpinsBtn').addEventListener('click', () => {
+        document.getElementById('stopSpraysBtn').addEventListener('click', () => {
             stopRequested = true;
-            isSpinning = false;
+            isSpraying = false;
         });
         
-        document.getElementById('findPacksBtn').addEventListener('click', findPacks);
+        // Pack event listeners
+        document.getElementById('checkAllPacksBtn').addEventListener('click', checkAllPacks);
+        
+        document.getElementById('packGroupSelect').addEventListener('change', updateSelectedPackGroup);
+        
+        document.getElementById('openOldestFirst').addEventListener('change', updateSelectedPackGroup);
         
         document.getElementById('openPacksBtn').addEventListener('click', openPacks);
         
-        document.getElementById('stopPacksBtn').addEventListener('click', () => {
+        document.getElementById('stopOpenPacksBtn').addEventListener('click', () => {
             stopRequested = true;
             isOpeningPacks = false;
         });
