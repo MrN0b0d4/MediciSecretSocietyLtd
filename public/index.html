@@ -744,28 +744,12 @@
                         <div class="info-label">Spray Interval:</div>
                         <div class="info-value" id="sprayInterval">30+0-21m</div>
                         
-                        <div class="info-label">Achievement #1:</div>
-                        <div class="info-value">
-                            <div class="time-display" id="ach1Time">—</div>
-                            <div id="ach1Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
-                        </div>
-                        
-                        <div class="info-label">Achievement #2:</div>
-                        <div class="info-value">
-                            <div class="time-display" id="ach2Time">—</div>
-                            <div id="ach2Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
-                        </div>
-                        
-                        <div class="info-label">Achievement #3:</div>
-                        <div class="info-value">
-                            <div class="time-display" id="ach3Time">—</div>
-                            <div id="ach3Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
-                        </div>
-                        <div class="info-label">ID</div>
+
+                        <div class="info-label">ID:</div>
                         <div class="sprayer-id-input">
-                            <label for="sprayerId">Sprayer ID:</label>
+                            <label for="sprayerId">ID:</label>
                             <input type="number" id="sprayerId" min="1" value="6865">
-                            <small style="color: var(--secondary);">ID</small>
+                            <small style="color: var(--secondary);">&nbsp;</small>
                         </div>
                     </div>
                 </div>
@@ -1396,94 +1380,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        async function startBrewScan() {
-            if (isBrewing) return;
-            
-            isBrewing = true;
-            stopRequested = false;
-            
-            const scanBtn = document.getElementById('startBrewScanBtn');
-            const proceedBtn = document.getElementById('proceedBrewBtn');
-            const stopBtn = document.getElementById('stopBrewBtn');
-            const progress = document.getElementById('brewProgress');
-            const stats = document.getElementById('brewStats');
-            const results = document.getElementById('brewResults');
-            const scanContainer = document.getElementById('scanResultsContainer');
-            
-            scanBtn.disabled = true;
-            proceedBtn.disabled = true;
-            stopBtn.disabled = false;
-            progress.style.display = 'block';
-            stats.style.display = 'grid';
-            scanContainer.style.display = 'none';
-            
-// Clear previous results automatically
-results.innerHTML = '';
-            
-            // Get parameters
-            const brewingPlanId = document.getElementById('brewPlanId').value;
-            const silvercoins = parseInt(document.getElementById('brewSilvercoins').value);
-            const minMintNumber = parseInt(document.getElementById('brewMinMint').value);
-            const maxBrews = parseInt(document.getElementById('brewMaxBrews').value);
-            const operationDelay = parseInt(document.getElementById('brewDelay').value);
-            
-            addBrewLog('🔍 Scanning collections...', 'info');
-            
-            try {
-                const response = await fetch('/api/brewing/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        brewingPlanId,
-                        silvercoins,
-                        minMintNumber,
-                        maxBrews,
-                        operationDelay
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to start brewing');
-                }
-                
-				if (data.sessionId) {
-    currentBrewSessionId = data.sessionId;
-    
-    // Display scan results if available
-    if (data.scanResults) {
-        displayScanResults(data.scanResults);
-        scanContainer.style.display = 'block';
-        // FIX: Enable proceed button immediately when scan results are available
-        proceedBtn.disabled = false;
-    }
-    
-    // Display initial logs
-    if (data.logs && data.logs.length > 0) {
-        data.logs.forEach(log => {
-            addBrewLog(log.message, log.type || 'info');
-        });
-    }
-    
-    // Start polling for status
-    if (brewStatusInterval) {
-        clearInterval(brewStatusInterval);
-    }
-    brewStatusInterval = setInterval(() => pollBrewStatus(currentBrewSessionId), 2000);
-}
-
-                
-            } catch (error) {
-                console.error('Brewing scan error:', error);
-                addBrewLog(`❌ Error: ${error.message}`, 'error');
-                
-                scanBtn.disabled = false;
-                stopBtn.disabled = true;
-                progress.style.display = 'none';
-                isBrewing = false;
-            }
-        }
         
         function displayScanResults(results) {
             const content = document.getElementById('scanResultsContent');
@@ -1495,38 +1391,54 @@ results.innerHTML = '';
                 </p>
             `;
         }
- 
+
+// Replace your existing pollBrewStatus function with this:
 async function pollBrewStatus(sessionId) {
     try {
         const response = await fetch(`/api/brewing/status/${sessionId}`);
         const data = await response.json();
         
         if (data.logs && data.logs.length > 0) {
-            // Add only new logs
+            // Get existing log messages to avoid duplicates
             const container = document.getElementById('brewResults');
             const existingMessages = new Set();
             container.querySelectorAll('.result-item').forEach(el => {
-                existingMessages.add(el.textContent);
+                // Store the full text content for comparison
+                existingMessages.add(el.textContent.trim());
             });
             
+            // Add only new logs that aren't already displayed
             data.logs.forEach(log => {
                 const timestamp = new Date(log.timestamp).toLocaleTimeString();
                 const logText = `[${timestamp}] ${log.message}`;
                 
-                if (!existingMessages.has(logText)) {
+                // Check if this exact log message already exists
+                let exists = false;
+                container.querySelectorAll('.result-item').forEach(el => {
+                    if (el.textContent.trim() === logText) {
+                        exists = true;
+                    }
+                });
+                
+                if (!exists) {
                     addBrewLog(log.message, log.type || 'info');
-                    existingMessages.add(logText);
                 }
             });
         }
         
-        // FIX: Check scanComplete from the response data
+        // Enable proceed button when scan is complete
         if (data.scanComplete) {
             document.getElementById('proceedBrewBtn').disabled = false;
         }
         
+        // If brewing has started or stopped, update UI accordingly
+        if (data.brewingStarted) {
+            document.getElementById('proceedBrewBtn').disabled = true;
+        }
+        
         if (data.stopped) {
             clearInterval(brewStatusInterval);
+            brewStatusInterval = null;
             resetBrewButtons();
         }
         
@@ -1534,10 +1446,128 @@ async function pollBrewStatus(sessionId) {
         console.error('Error polling brew status:', error);
     }
 }
- 
 
+// Replace your existing proceedToBrew function with this:
+async function proceedToBrew() {
+    if (!currentBrewSessionId) return;
+    
+    const proceedBtn = document.getElementById('proceedBrewBtn');
+    proceedBtn.disabled = true;
+    
+    try {
+        addBrewLog('▶️ Proceeding to brew...', 'info');
         
-        async function proceedToBrew() {
+        const response = await fetch(`/api/brewing/proceed/${currentBrewSessionId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to proceed');
+        }
+        
+        addBrewLog('✅ Brewing started!', 'success');
+        
+    } catch (error) {
+        console.error('Error proceeding to brew:', error);
+        addBrewLog(`❌ Error: ${error.message}`, 'error');
+        proceedBtn.disabled = false;
+    }
+}
+
+// Also update the startBrewScan function to properly handle the scan results
+async function startBrewScan() {
+    if (isBrewing) return;
+    
+    isBrewing = true;
+    stopRequested = false;
+    
+    const scanBtn = document.getElementById('startBrewScanBtn');
+    const proceedBtn = document.getElementById('proceedBrewBtn');
+    const stopBtn = document.getElementById('stopBrewBtn');
+    const progress = document.getElementById('brewProgress');
+    const stats = document.getElementById('brewStats');
+    const results = document.getElementById('brewResults');
+    const scanContainer = document.getElementById('scanResultsContainer');
+    
+    scanBtn.disabled = true;
+    proceedBtn.disabled = true; // Keep disabled until scan completes
+    stopBtn.disabled = false;
+    progress.style.display = 'block';
+    stats.style.display = 'grid';
+    
+    // Clear previous results
+    results.innerHTML = '';
+    
+    // Get parameters
+    const brewingPlanId = document.getElementById('brewPlanId').value;
+    const silvercoins = parseInt(document.getElementById('brewSilvercoins').value);
+    const minMintNumber = parseInt(document.getElementById('brewMinMint').value);
+    const maxBrews = parseInt(document.getElementById('brewMaxBrews').value);
+    const operationDelay = parseInt(document.getElementById('brewDelay').value);
+    
+    addBrewLog('🔍 Scanning collections...', 'info');
+    
+    try {
+        const response = await fetch('/api/brewing/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                brewingPlanId,
+                silvercoins,
+                minMintNumber,
+                maxBrews,
+                operationDelay
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to start brewing');
+        }
+        
+        if (data.sessionId) {
+            currentBrewSessionId = data.sessionId;
+            
+            // Display scan results if available
+            if (data.scanResults) {
+                displayScanResults(data.scanResults);
+                scanContainer.style.display = 'block';
+            }
+            
+            // Display initial logs
+            if (data.logs && data.logs.length > 0) {
+                data.logs.forEach(log => {
+                    addBrewLog(log.message, log.type || 'info');
+                });
+            }
+            
+            // Start polling for status
+            if (brewStatusInterval) {
+                clearInterval(brewStatusInterval);
+            }
+            brewStatusInterval = setInterval(() => pollBrewStatus(currentBrewSessionId), 2000);
+            
+            // Hide progress bar after scan completes
+            setTimeout(() => {
+                progress.style.display = 'none';
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('Brewing scan error:', error);
+        addBrewLog(`❌ Error: ${error.message}`, 'error');
+        
+        scanBtn.disabled = false;
+        stopBtn.disabled = true;
+        progress.style.display = 'none';
+        isBrewing = false;
+    }
+}
+        
+       
             if (!currentBrewSessionId) return;
             
             const proceedBtn = document.getElementById('proceedBrewBtn');
