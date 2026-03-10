@@ -814,10 +814,7 @@ async function getCollectionCards(collectionId, minMintNumber) {
       return true;
     })
     .filter(card => 
-      card.status === 'available' && 
-      !card.isMarketList && 
-      card.ethStatus !== 'imx_locked' &&
-      card.bundleId === null
+      card.status === 'available'
     )
     .map(card => ({
       id: card.id,
