@@ -25,7 +25,6 @@
             --chip: #f1f5f9;
             --weekend: #7c3aed;
             --brew: #8B4513;
-            --scan: #2196F3;
         }
         
         * {
@@ -174,16 +173,6 @@
             background: #6b3410;
         }
         
-        .btn-scan {
-            background: var(--scan);
-            border-color: var(--scan);
-            color: white;
-        }
-        
-        .btn-scan:hover {
-            background: #1976D2;
-        }
-        
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -263,7 +252,6 @@
         .log-entry {
             padding: 4px 0;
             border-bottom: 1px solid #e2e8f0;
-            font-family: monospace;
         }
         
         .log-time {
@@ -384,13 +372,12 @@
         }
         
         .result-item {
-            padding: 6px 8px;
-            margin-bottom: 4px;
+            padding: 8px;
+            margin-bottom: 6px;
             background: white;
             border-radius: 4px;
             border-left: 3px solid var(--primary);
             font-size: 12px;
-            font-family: monospace;
         }
         
         .result-item.success {
@@ -405,15 +392,13 @@
             border-left-color: var(--warning);
         }
         
-        .result-item.highlight {
-            border-left-color: var(--brew);
-            background: #f0e6dd;
-            font-weight: 500;
-        }
-        
-        .result-item.compact {
-            padding: 3px 6px;
+        .result-item .card-detail {
+            margin-left: 15px;
             font-size: 11px;
+            color: var(--secondary);
+            border-left: 1px solid var(--border);
+            padding-left: 8px;
+            margin-top: 4px;
         }
         
         .prize-info {
@@ -587,7 +572,6 @@
             padding: 12px;
             border-radius: 6px;
             margin-bottom: 15px;
-            font-size: 13px;
         }
         
         .requirement-item {
@@ -598,45 +582,6 @@
             margin: 2px;
             font-size: 12px;
             border-left: 3px solid var(--brew);
-        }
-        
-        .scan-results-box {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-            border-left: 4px solid var(--scan);
-            font-size: 13px;
-        }
-        
-        .session-info {
-            background: #f0e6dd;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-        
-        .session-id {
-            font-family: monospace;
-            font-size: 14px;
-            color: var(--brew);
-            background: #fff;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .warning-box {
-            background: #fff3e0;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-            border-left: 4px solid #f39c12;
-        }
-        
-        .compact-log {
-            font-family: monospace;
-            font-size: 11px;
-            margin: 2px 0;
         }
         
         @media (max-width: 768px) {
@@ -655,7 +600,7 @@
         <div>
             <h1>🎰 Sprayer <span class="accent">Dashboard</span> <span id="weekendIndicator" class="weekend" style="display:none;">(Weekend Mode)</span></h1>
             <div class="auto-refresh">
-                <input type="checkbox" id="autoRefresh" checked />
+                <input type="checkbox" id="autoRefresh" />
                 <label for="autoRefresh">Auto-refresh (10s)</label>
             </div>
         </div>
@@ -744,13 +689,31 @@
                         <div class="info-label">Spray Interval:</div>
                         <div class="info-value" id="sprayInterval">30+0-21m</div>
                         
-
-                        <div class="info-label">ID:</div>
-                        <div class="sprayer-id-input">
-                            <label for="sprayerId">ID:</label>
-                            <input type="number" id="sprayerId" min="1" value="6865">
-                            <small style="color: var(--secondary);">&nbsp;</small>
+                        <div class="info-label">Achievement #1:</div>
+                        <div class="info-value">
+                            <div class="time-display" id="ach1Time">—</div>
+                            <div id="ach1Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
                         </div>
+                        
+                        <div class="info-label">Achievement #2:</div>
+                        <div class="info-value">
+                            <div class="time-display" id="ach2Time">—</div>
+                            <div id="ach2Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
+                        </div>
+                        
+                        <div class="info-label">Achievement #3:</div>
+                        <div class="info-value">
+                            <div class="time-display" id="ach3Time">—</div>
+                            <div id="ach3Countdown" style="font-size: 11px; color: var(--muted); margin-top: 2px;"></div>
+                        </div>
+						<div class="info-label">ID</div>
+                <div class="sprayer-id-input">
+                    <label for="sprayerId">Sprayer ID:</label>
+                    <input type="number" id="sprayerId" min="1" value="6865">
+                    <small style="color: var(--secondary);">ID</small>
+                </div>
+
+            
                     </div>
                 </div>
             </div>
@@ -898,17 +861,17 @@
                         </div>
                     </div>
 
-                    <!-- Enhanced Brewing Tool Tab -->
+                    <!-- Brewing Tool Tab -->
                     <div class="tab-content" id="tab-brew">
                         <p style="color: var(--secondary); margin-bottom: 20px; font-size: 14px;">
-                            Brew/Craft cards using collections. Scan first to see available cards, then proceed.
+                            Brew/Craft cards using collections. Uses your current JWT token and user ID.
                         </p>
 
                         <div class="requirements-info">
                             <strong>🍺 Brewing Requirements:</strong><br>
-                            <span class="requirement-item">Req 3235: 16 cards (17920,17921,17922)</span>
-                            <span class="requirement-item">Req 3236: 8 cards (17923,17924,17925)</span>
-                            <span class="requirement-item">Req 3237: 4 cards (17953,17986,17987)</span>
+                            <span class="requirement-item">Req 3235: 16 cards (Collections: 17920,17921,17922)</span>
+                            <span class="requirement-item">Req 3236: 8 cards (Collections: 17923,17924,17925)</span>
+                            <span class="requirement-item">Req 3237: 4 cards (Collections: 17953,17986,17987)</span>
                         </div>
 
                         <div class="form-group">
@@ -924,7 +887,6 @@
                         <div class="form-group">
                             <label for="brewMinMint">Minimum Mint Number:</label>
                             <input type="number" id="brewMinMint" min="1" value="30">
-                            <small style="color: var(--secondary);">Only use cards with mint ≥ this value</small>
                         </div>
 
                         <div class="form-group">
@@ -938,24 +900,15 @@
                         </div>
 
                         <div class="btn-group">
-                            <button id="startBrewScanBtn" class="btn btn-scan">
-                                🔍 Scan Collections
-                            </button>
-                            <button id="proceedBrewBtn" class="btn btn-brew" disabled>
-                                ▶️ Proceed to Brew
+                            <button id="startBrewBtn" class="btn btn-brew">
+                                🍺 Start Brewing
                             </button>
                             <button id="stopBrewBtn" class="btn btn-danger" disabled>
-                                ⏹️ Stop
+                                ⏹️ Stop Brewing
                             </button>
                             <button id="clearBrewLogsBtn" class="btn btn-secondary">
                                 🧹 Clear Logs
                             </button>
-                        </div>
-
-                        <!-- Scan Results Display -->
-                        <div id="scanResultsContainer" class="scan-results-box" style="display: none;">
-                            <h4 style="margin-top: 0;">📊 Scan Results</h4>
-                            <div id="scanResultsContent"></div>
                         </div>
 
                         <div id="brewProgress" class="progress-container" style="display: none;">
@@ -980,7 +933,7 @@
                         <h3>Brewing Logs:</h3>
                         <div id="brewResults" class="results-container">
                             <div style="text-align: center; color: var(--secondary); padding: 20px;">
-                                No brewing operations yet. Click "Scan Collections" to start.
+                                No brewing operations yet. Results will appear here.
                             </div>
                         </div>
                     </div>
@@ -1011,9 +964,7 @@
         let isSpraying = false;
         let isOpeningPacks = false;
         let isBrewing = false;
-        let stopRequested = false;
-        let currentBrewSessionId = null;
-        let brewStatusInterval = null;
+        let stopBrewing = false;
         
         // Pack management variables
         let allPacks = [];
@@ -1367,237 +1318,7 @@
             isSpraying = false;
         }
         
-        // ============== ENHANCED BREWING FUNCTIONS ==============
-        function addBrewLog(message, type = 'info') {
-            const container = document.getElementById('brewResults');
-            const logEntry = document.createElement('div');
-            logEntry.className = `result-item ${type}`;
-            
-            const timestamp = new Date().toLocaleTimeString();
-            logEntry.innerHTML = `[${timestamp}] ${message}`;
-            
-            container.appendChild(logEntry);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function displayScanResults(results) {
-            const content = document.getElementById('scanResultsContent');
-            content.innerHTML = `
-                <p>📊 Cards: ${results.cardBasedBatches} brews possible</p>
-                <p>💰 Funds: ${results.fundBasedBatches} brews possible (Balance: ${results.initialSilver.toLocaleString()} silver)</p>
-                <p class="warning-box" style="margin:10px 0; padding:8px;">
-                    ⚠️ Lowest mint that will be used: <strong>${results.lowestMintUsed}</strong>
-                </p>
-            `;
-        }
-
-        async function pollBrewStatus(sessionId) {
-            try {
-                const response = await fetch(`/api/brewing/status/${sessionId}`);
-                const data = await response.json();
-                
-                if (data.logs && data.logs.length > 0) {
-                    // Get existing log messages to avoid duplicates
-                    const container = document.getElementById('brewResults');
-                    
-                    // Add only new logs that aren't already displayed
-                    data.logs.forEach(log => {
-                        const timestamp = new Date(log.timestamp).toLocaleTimeString();
-                        const logText = `[${timestamp}] ${log.message}`;
-                        
-                        // Check if this exact log message already exists
-                        let exists = false;
-                        container.querySelectorAll('.result-item').forEach(el => {
-                            if (el.textContent.trim() === logText) {
-                                exists = true;
-                            }
-                        });
-                        
-                        if (!exists) {
-                            addBrewLog(log.message, log.type || 'info');
-                        }
-                    });
-                }
-                
-                // Enable proceed button when scan is complete
-                if (data.scanComplete) {
-                    document.getElementById('proceedBrewBtn').disabled = false;
-                }
-                
-                // If brewing has started or stopped, update UI accordingly
-                if (data.brewingStarted) {
-                    document.getElementById('proceedBrewBtn').disabled = true;
-                }
-                
-                if (data.stopped) {
-                    clearInterval(brewStatusInterval);
-                    brewStatusInterval = null;
-                    resetBrewButtons();
-                }
-                
-            } catch (error) {
-                console.error('Error polling brew status:', error);
-            }
-        }
-
-        async function proceedToBrew() {
-            if (!currentBrewSessionId) return;
-            
-            const proceedBtn = document.getElementById('proceedBrewBtn');
-            proceedBtn.disabled = true;
-            
-            try {
-                addBrewLog('▶️ Proceeding to brew...', 'info');
-                
-                const response = await fetch(`/api/brewing/proceed/${currentBrewSessionId}`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || 'Failed to proceed');
-                }
-                
-                addBrewLog('✅ Brewing started!', 'success');
-                
-            } catch (error) {
-                console.error('Error proceeding to brew:', error);
-                addBrewLog(`❌ Error: ${error.message}`, 'error');
-                proceedBtn.disabled = false;
-            }
-        }
-
-        async function startBrewScan() {
-            if (isBrewing) return;
-            
-            isBrewing = true;
-            stopRequested = false;
-            
-            const scanBtn = document.getElementById('startBrewScanBtn');
-            const proceedBtn = document.getElementById('proceedBrewBtn');
-            const stopBtn = document.getElementById('stopBrewBtn');
-            const progress = document.getElementById('brewProgress');
-            const stats = document.getElementById('brewStats');
-            const results = document.getElementById('brewResults');
-            const scanContainer = document.getElementById('scanResultsContainer');
-            
-            scanBtn.disabled = true;
-            proceedBtn.disabled = true; // Keep disabled until scan completes
-            stopBtn.disabled = false;
-            progress.style.display = 'block';
-            stats.style.display = 'grid';
-            
-            // Clear previous results
-            results.innerHTML = '';
-            scanContainer.style.display = 'none';
-            
-            // Get parameters
-            const brewingPlanId = document.getElementById('brewPlanId').value;
-            const silvercoins = parseInt(document.getElementById('brewSilvercoins').value);
-            const minMintNumber = parseInt(document.getElementById('brewMinMint').value);
-            const maxBrews = parseInt(document.getElementById('brewMaxBrews').value);
-            const operationDelay = parseInt(document.getElementById('brewDelay').value);
-            
-            addBrewLog('🔍 Scanning collections...', 'info');
-            
-            try {
-                const response = await fetch('/api/brewing/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        brewingPlanId,
-                        silvercoins,
-                        minMintNumber,
-                        maxBrews,
-                        operationDelay
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to start brewing');
-                }
-                
-                if (data.sessionId) {
-                    currentBrewSessionId = data.sessionId;
-                    
-                    // Display scan results if available
-                    if (data.scanResults) {
-                        displayScanResults(data.scanResults);
-                        scanContainer.style.display = 'block';
-                    }
-                    
-                    // Display initial logs
-                    if (data.logs && data.logs.length > 0) {
-                        data.logs.forEach(log => {
-                            addBrewLog(log.message, log.type || 'info');
-                        });
-                    }
-                    
-                    // Start polling for status
-                    if (brewStatusInterval) {
-                        clearInterval(brewStatusInterval);
-                    }
-                    brewStatusInterval = setInterval(() => pollBrewStatus(currentBrewSessionId), 2000);
-                    
-                    // Hide progress bar after scan completes
-                    setTimeout(() => {
-                        progress.style.display = 'none';
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.error('Brewing scan error:', error);
-                addBrewLog(`❌ Error: ${error.message}`, 'error');
-                
-                scanBtn.disabled = false;
-                stopBtn.disabled = true;
-                progress.style.display = 'none';
-                isBrewing = false;
-            }
-        }
-        
-        async function stopBrewingProcess() {
-            if (!isBrewing && !currentBrewSessionId) return;
-            
-            stopRequested = true;
-            addBrewLog('⏹️ Stopping...', 'warning');
-            
-            try {
-                await fetch('/api/brewing/stop', { method: 'POST' });
-                
-                if (brewStatusInterval) {
-                    clearInterval(brewStatusInterval);
-                    brewStatusInterval = null;
-                }
-                
-                resetBrewButtons();
-                
-            } catch (error) {
-                console.error('Error stopping brew:', error);
-            }
-        }
-        
-        function resetBrewButtons() {
-            document.getElementById('startBrewScanBtn').disabled = false;
-            document.getElementById('proceedBrewBtn').disabled = true;
-            document.getElementById('stopBrewBtn').disabled = true;
-            document.getElementById('brewProgress').style.display = 'none';
-            isBrewing = false;
-            currentBrewSessionId = null;
-        }
-
-        function clearBrewLogs() {
-            document.getElementById('brewResults').innerHTML = '';
-            document.getElementById('brewTotal').textContent = '0';
-            document.getElementById('brewSuccessful').textContent = '0';
-            document.getElementById('brewCards').textContent = '0';
-            document.getElementById('scanResultsContainer').style.display = 'none';
-        }
-        
-        // ============== PACK FUNCTIONS ==============
+        // ============== ENHANCED PACK FUNCTIONS ==============
         async function checkAllPacks() {
             const checkBtn = document.getElementById('checkAllPacksBtn');
             const originalText = checkBtn.innerHTML;
@@ -1893,6 +1614,120 @@
             isOpeningPacks = false;
         }
         
+        // ============== BREWING FUNCTIONS ==============
+        function addBrewLog(message, type = 'info') {
+            const container = document.getElementById('brewResults');
+            const logEntry = document.createElement('div');
+            logEntry.className = `result-item ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            container.appendChild(logEntry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function startBrewing() {
+            if (isBrewing) return;
+            
+            isBrewing = true;
+            stopBrewing = false;
+            
+            const startBtn = document.getElementById('startBrewBtn');
+            const stopBtn = document.getElementById('stopBrewBtn');
+            const progress = document.getElementById('brewProgress');
+            const stats = document.getElementById('brewStats');
+            const results = document.getElementById('brewResults');
+            
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            progress.style.display = 'block';
+            stats.style.display = 'grid';
+            
+            // Clear previous results
+            if (document.getElementById('clearBrewLogsOnStart')?.checked) {
+                results.innerHTML = '';
+            }
+            
+            // Get parameters
+            const brewingPlanId = document.getElementById('brewPlanId').value;
+            const silvercoins = parseInt(document.getElementById('brewSilvercoins').value);
+            const minMintNumber = parseInt(document.getElementById('brewMinMint').value);
+            const maxBrews = parseInt(document.getElementById('brewMaxBrews').value);
+            const operationDelay = parseInt(document.getElementById('brewDelay').value);
+            
+            addBrewLog('🚀 Starting brewing process...', 'success');
+            
+            try {
+                const response = await fetch('/api/brewing/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        brewingPlanId,
+                        silvercoins,
+                        minMintNumber,
+                        maxBrews,
+                        operationDelay
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to execute brewing');
+                }
+                
+                // Display logs
+                if (data.logs && data.logs.length > 0) {
+                    data.logs.forEach(log => {
+                        addBrewLog(log.message, log.type || 'info');
+                    });
+                }
+                
+                // Update stats
+                document.getElementById('brewTotal').textContent = data.totalBrews || 0;
+                document.getElementById('brewSuccessful').textContent = data.successfulBrews || 0;
+                document.getElementById('brewCards').textContent = data.cardsReceived?.length || 0;
+                
+                if (data.success) {
+                    addBrewLog('✅ Brewing completed successfully!', 'success');
+                } else if (data.stopped) {
+                    addBrewLog('⏹️ Brewing stopped by user', 'warning');
+                } else {
+                    addBrewLog('❌ Brewing failed', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Brewing error:', error);
+                addBrewLog(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                progress.style.display = 'none';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                isBrewing = false;
+            }
+        }
+
+        async function stopBrewingProcess() {
+            if (!isBrewing) return;
+            
+            stopBrewing = true;
+            addBrewLog('⏹️ Stopping brewing...', 'warning');
+            
+            try {
+                await fetch('/api/brewing/stop', { method: 'POST' });
+            } catch (error) {
+                console.error('Error stopping brew:', error);
+            }
+        }
+
+        function clearBrewLogs() {
+            document.getElementById('brewResults').innerHTML = '';
+            document.getElementById('brewTotal').textContent = '0';
+            document.getElementById('brewSuccessful').textContent = '0';
+            document.getElementById('brewCards').textContent = '0';
+        }
+        
         // ============== EVENT LISTENERS ==============
         document.getElementById('refreshBtn').addEventListener('click', updateAll);
         
@@ -1939,8 +1774,11 @@
         
         // Pack event listeners
         document.getElementById('checkAllPacksBtn').addEventListener('click', checkAllPacks);
+        
         document.getElementById('packGroupSelect').addEventListener('change', updateSelectedPackGroup);
+        
         document.getElementById('openOldestFirst').addEventListener('change', updateSelectedPackGroup);
+        
         document.getElementById('openPacksBtn').addEventListener('click', openPacks);
         
         document.getElementById('stopOpenPacksBtn').addEventListener('click', () => {
@@ -1949,8 +1787,7 @@
         });
 
         // Brewing event listeners
-        document.getElementById('startBrewScanBtn').addEventListener('click', startBrewScan);
-        document.getElementById('proceedBrewBtn').addEventListener('click', proceedToBrew);
+        document.getElementById('startBrewBtn').addEventListener('click', startBrewing);
         document.getElementById('stopBrewBtn').addEventListener('click', stopBrewingProcess);
         document.getElementById('clearBrewLogsBtn').addEventListener('click', clearBrewLogs);
         
@@ -1979,6 +1816,7 @@
         
         // Initial load
         updateAll();
+        refreshInterval = setInterval(updateAll, 10000);
     </script>
 </body>
 </html>
