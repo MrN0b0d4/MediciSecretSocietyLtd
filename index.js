@@ -1257,9 +1257,15 @@ function scheduleDailyPlan() {
   logActivity(`📅 Daily plan: ${effectiveStart.toUTCString()} to ${effectiveEnd.toUTCString()}`);
   
   // Schedule achievements
-  const claim1 = addMinutes(effectiveStart, 25);        // Start + 25m
-  const claim2 = addMinutes(claim1, 6 * 60);          // +6 hours from claim1
-  const claim3 = addMinutes(effectiveEnd, -15);        // End - 15m
+  
+  const claim1 = addMinutes(effectiveStart, 25);
+const claim2 = addMinutes(claim1, 70);
+const claim3 = addMinutes(effectiveStart, 190);
+const claim4 = addMinutes(effectiveStart, 280);
+const claim5 = addMinutes(effectiveStart, 410);
+const claim6 = addMinutes(effectiveStart, 570);
+const claim7 = addMinutes(effectiveEnd, -70);
+const claim8 = addMinutes(effectiveEnd, -15);
   
   const scheduleClaim = (when, label) => {
     const delay = when.getTime() - Date.now();
@@ -1283,9 +1289,14 @@ function scheduleDailyPlan() {
     logActivity(`⏰ ${label} scheduled for ${when.toUTCString()}`);
   };
   
-  scheduleClaim(claim1, 'Achievements #1 (Start+25m)');
-  scheduleClaim(claim2, 'Achievements #2 (+6h)');
-  scheduleClaim(claim3, 'Achievements #3 (End-15m)');
+scheduleClaim(claim1, 'Achievements #1');
+scheduleClaim(claim2, 'Achievements #2)');
+scheduleClaim(claim3, 'Achievements #3');
+scheduleClaim(claim4, 'Achievements #4');
+scheduleClaim(claim5, 'Achievements #5');
+scheduleClaim(claim6, 'Achievements #6');
+scheduleClaim(claim7, 'Achievements #7');
+scheduleClaim(claim8, 'Achievements #8');
   
   // Schedule rollover for TOMORROW
   const tomorrow = new Date(now);
@@ -1536,7 +1547,9 @@ app.post('/api/brewing/start', async (req, res) => {
     res.json({
       success: true,
       sessionId,
-      ...result
+      scanComplete: result.scanComplete || false,
+      scanResults: result.scanResults || null,
+      logs: result.logs || []
     });
   } catch (error) {
     res.status(500).json({ 
@@ -1545,6 +1558,8 @@ app.post('/api/brewing/start', async (req, res) => {
     });
   }
 });
+
+
 
 // Proceed after scan
 app.post('/api/brewing/proceed/:sessionId', async (req, res) => {
