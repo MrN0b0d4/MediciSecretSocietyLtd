@@ -1039,7 +1039,7 @@ async function processBrew(brewingPlanId, silvercoins, sortedCardsByRequirement,
 }
 
 // Enhanced execute brewing with scan-then-proceed pattern
-async function executeBrewing(brewingPlanId, silvercoins, minMintNumber, maxBrews, operationDelay, stopRequestRef, sessionId) {
+async function executeBrewing(brewingPlanId, silvercoins, minMintNumber, maxBrews, operationDelay, stopRequestRef, sessionId, stopAfterScan = false) {
   if (!userData.jwtToken) {
     return { success: false, error: 'No JWT token available' };
   }
@@ -1117,12 +1117,25 @@ async function executeBrewing(brewingPlanId, silvercoins, minMintNumber, maxBrew
 
   if (actualBrews === 0) {
     addLog('❌ No brews possible', 'error');
+    results.scanComplete = true;
     return { success: false, logs: results.logs, scanComplete: true, scanResults: results.scanResults };
   }
 
   results.scanComplete = true;
   
-  // Wait for user to proceed
+  // If stopAfterScan is true, return now with the logs
+  if (stopAfterScan) {
+    addLog('⏸️ Scan complete - waiting for approval...', 'highlight');
+    return { 
+      success: true, 
+      logs: results.logs, 
+      scanComplete: true, 
+      scanResults: results.scanResults,
+      sessionId 
+    };
+  }
+
+  // Wait for user to proceed (original behavior)
   addLog('⏸️ Scan complete - waiting for approval...', 'highlight');
 
   // Wait for proceed signal
@@ -1533,7 +1546,8 @@ app.post('/api/brewing/start', async (req, res) => {
     const sessionId = Date.now().toString();
     const stopRequestRef = { stopped: false };
 
-    // Execute brewing in background
+    // Execute brewing in background BUT WAIT FOR SCAN PHASE TO COMPLETE
+    // We need to modify executeBrewing to return scan results without waiting for proceed
     const result = await executeBrewing(
       brewingPlanId,
       silvercoins,
@@ -1541,7 +1555,8 @@ app.post('/api/brewing/start', async (req, res) => {
       maxBrews,
       operationDelay,
       stopRequestRef,
-      sessionId
+      sessionId,
+      true // New parameter to indicate we want to stop after scan
     );
 
     res.json({
@@ -1549,7 +1564,7 @@ app.post('/api/brewing/start', async (req, res) => {
       sessionId,
       scanComplete: result.scanComplete || false,
       scanResults: result.scanResults || null,
-      logs: result.logs || []
+      logs: result.logs || [] // Make sure logs are included
     });
   } catch (error) {
     res.status(500).json({ 
