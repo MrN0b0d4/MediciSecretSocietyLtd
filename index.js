@@ -93,7 +93,7 @@ let brewingSessions = {};
 const PRIZE_MAP = {
   11986: '5,000 Silvercoins',
   11981: 'Core 2026 Standard Pack',
-  12013: 'EPL 23 Pack',
+  12079: 'EPL 23 Pack',
   11980: '500 Silvercoins',
   11985: '1,000,000 Silvercoins',
   11984: '100,000 Silvercoins',
@@ -1239,203 +1239,6 @@ async function executeBrewing(brewingPlanId, silvercoins, minMintNumber, maxBrew
   return { success: true, ...results };
 }
 
-
-  if (!userData.jwtToken) {
-    return { success: false, error: 'No JWT token available' };
-  }
-
-  const results = {
-    logs: [],
-    totalBrews: 0,
-    successfulBrews: 0,
-    cardsReceived: [],
-    scanResults: null,
-    scanComplete: false,
-    proceedAfterScan: false
-  };
-
-  function addLog(message, type = 'info') {
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      message,
-      type
-    };
-    results.logs.push(logEntry);
-    console.log(`[BREW] ${message}`);
-  }
-
-  // Store session for proceed control
-  brewingSessions[sessionId] = {
-    stopRequestRef,
-    results,
-    proceed: false
-  };
-
-  // SCAN PHASE
-  addLog('💰 Checking balance...', 'compact');
-  
-  const fundsResult = await checkUserFunds();
-  if (!fundsResult.success) {
-    addLog(`❌ Funds check failed: ${fundsResult.error}`, 'error');
-    return { success: false, error: fundsResult.error, logs: results.logs };
-  }
-  
-  const initialSilver = fundsResult.balance;
-  addLog(`💰 Balance: ${initialSilver.toLocaleString()}`, 'compact');
-
-  // Scan collections
-  addLog('🔍 Scanning collections...', 'compact');
-  
-  const { cardsByRequirement, cardsWithDetails, collectionStats } = await getAvailableCards(minMintNumber, stopRequestRef);
-
-  if (stopRequestRef.stopped) {
-    return { success: false, stopped: true, logs: results.logs };
-  }
-
-  // Display collection stats in one line per requirement
-  for (const [reqId, stats] of Object.entries(collectionStats)) {
-    addLog(`📦 Req ${reqId}: total ${cardsByRequirement[reqId].length} (${stats.join('/')} available)`, 'compact');
-  }
-
-  // Calculate possible brews
-  const cardBasedBatches = calculateBrewableBatches(cardsByRequirement, maxBrews);
-  const fundBasedBatches = Math.floor(initialSilver / silvercoins);
-  const actualBrews = Math.min(cardBasedBatches, fundBasedBatches, maxBrews);
-  const lowestMintUsed = findLowestMintToBeUsed(cardsByRequirement, cardsWithDetails, actualBrews);
-
-  // Store scan results
-  results.scanResults = {
-    cardBasedBatches,
-    fundBasedBatches,
-    actualBrews,
-    lowestMintUsed,
-    initialSilver,
-    silverPerBrew: silvercoins
-  };
-  
-  addLog(`📊 Cards:${cardBasedBatches} brews | Funds:${fundBasedBatches} brews | Lowest mint:${lowestMintUsed}`, 'compact');
-
-  if (actualBrews === 0) {
-    addLog('❌ No brews possible', 'error');
-    results.scanComplete = true;
-    return { success: false, logs: results.logs, scanComplete: true, scanResults: results.scanResults };
-  }
-
-  results.scanComplete = true;
-  
-  // If stopAfterScan is true, return now with the logs
-  if (stopAfterScan) {
-    addLog('⏸️ Scan complete - waiting for approval...', 'highlight');
-    return { 
-      success: true, 
-      logs: results.logs, 
-      scanComplete: true, 
-      scanResults: results.scanResults,
-      sessionId 
-    };
-  }
-
-  // Wait for user to proceed (original behavior)
-  addLog('⏸️ Scan complete - waiting for approval...', 'highlight');
-
-  // Wait for proceed signal
-  while (!brewingSessions[sessionId].proceed && !stopRequestRef.stopped) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-
-  if (stopRequestRef.stopped) {
-    return { success: false, stopped: true, logs: results.logs };
-  }
-
-  // BREWING PHASE
-  addLog('▶️ Starting brewing...', 'compact');
-
-  // Sort cards by mint number (highest first)
-  const sortedCardsByRequirement = sortCardsByMintDesc(cardsByRequirement, cardsWithDetails);
-  const usedCardIds = new Set();
-  const allCardsReceived = [];
-
-  for (let brewNum = 1; brewNum <= actualBrews; brewNum++) {
-    if (stopRequestRef.stopped) break;
-
-    try {
-      // Check funds before each brew
-      const currentFundsResult = await checkUserFunds();
-      if (!currentFundsResult.success || currentFundsResult.balance < silvercoins) {
-        addLog(`⚠️ Insufficient funds for brew ${brewNum}`, 'warning');
-        break;
-      }
-
-      const brewResult = await processBrew(
-        brewingPlanId,
-        silvercoins,
-        sortedCardsByRequirement,
-        cardsWithDetails,
-        usedCardIds,
-        brewNum,
-        stopRequestRef
-      );
-
-      if (brewResult.success) {
-        results.successfulBrews++;
-        
-        if (brewResult.cardsReceived && brewResult.cardsReceived.length > 0) {
-          allCardsReceived.push(...brewResult.cardsReceived);
-          
-          // Format cards for display
-          const cardsDisplay = brewResult.cardsReceived.map(c => 
-            `${c.mintBatch}${c.mintNumber}(${c.rating})`
-          ).join(', ');
-          
-          addLog(`🍺 Brew ${brewNum}/${actualBrews} | Slots ${brewResult.cardsReceived.length} | Got: ${cardsDisplay}`, 'compact');
-        } else {
-          addLog(`🍺 Brew ${brewNum}/${actualBrews} completed`, 'compact');
-        }
-      } else {
-        addLog(`❌ Brew ${brewNum} failed`, 'error');
-      }
-
-      results.totalBrews++;
-
-      if (brewNum < actualBrews && !stopRequestRef.stopped) {
-        await new Promise(resolve => setTimeout(resolve, operationDelay));
-      }
-
-    } catch (error) {
-      addLog(`❌ Error in brew ${brewNum}: ${error.message}`, 'error');
-    }
-  }
-
-  // Final summary
-  results.cardsReceived = allCardsReceived;
-  
-  if (allCardsReceived.length > 0) {
-    const uniqueCards = new Map();
-    allCardsReceived.forEach(card => {
-      const key = `${card.mintBatch}-${card.mintNumber}`;
-      if (!uniqueCards.has(key)) {
-        uniqueCards.set(key, card);
-      }
-    });
-    
-    const sortedCards = Array.from(uniqueCards.values()).sort((a, b) => {
-      const numA = parseInt(a.mintNumber) || 0;
-      const numB = parseInt(b.mintNumber) || 0;
-      return numA - numB;
-    });
-    
-    const cardsList = sortedCards.map(c => `${c.mintBatch}${c.mintNumber}(${c.rating})`).join(', ');
-    addLog(`✅ Complete | Brewed: ${cardsList}`, 'success');
-  } else {
-    addLog(`✅ Complete | ${results.successfulBrews}/${actualBrews} brews successful`, 'success');
-  }
-
-  // Clean up session
-  delete brewingSessions[sessionId];
-
-  return { success: true, ...results };
-}
-
 // Proceed after scan
 async function proceedBrewing(sessionId) {
   if (brewingSessions[sessionId]) {
@@ -1747,7 +1550,6 @@ app.post('/api/brewing/start', async (req, res) => {
     const stopRequestRef = { stopped: false };
 
     // Execute brewing in background BUT WAIT FOR SCAN PHASE TO COMPLETE
-    // We need to modify executeBrewing to return scan results without waiting for proceed
     const result = await executeBrewing(
       brewingPlanId,
       silvercoins,
@@ -1773,8 +1575,6 @@ app.post('/api/brewing/start', async (req, res) => {
     });
   }
 });
-
-
 
 // Proceed after scan
 app.post('/api/brewing/proceed/:sessionId', async (req, res) => {
