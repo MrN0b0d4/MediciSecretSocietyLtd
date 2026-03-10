@@ -1232,6 +1232,58 @@ async function proceedBrewing(sessionId) {
   return { success: false, error: 'Session not found' };
 }
 
+// ======================= INITIALIZATION =======================
+
+// Initialize the spray service
+async function initialize() {
+  try {
+    console.log('🚀 INITIALIZING SPRAYER SERVICE...');
+    
+    // Refresh token
+    await refreshToken();
+    
+    // Wait a bit then start operations
+    setTimeout(() => {
+      logActivity('🚀 Starting operations after token refresh');
+      
+      // Schedule daily plan
+      scheduleDailyPlan();
+      
+      // Check funds
+      checkFunds();
+      
+      // Start continuous operations - default sprayerId 6865 will be overridden by frontend
+      startContinuousOperations(6865);
+    }, 60000);
+    
+    console.log('✅ Sprayer service initialized successfully');
+    
+  } catch (error) {
+    console.error('❌ Failed to initialize sprayer service:', error);
+  }
+}
+
+// Continuous operations
+function startContinuousOperations(sprayerId) {
+  console.log('🚀 Starting continuous operations...');
+  
+  // Spray operations - check every 30 seconds
+  setInterval(async () => {
+    if (userData.isActive && isWithinActiveWindow()) {
+      if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
+        await executeScheduledSpray(sprayerId);
+      }
+    }
+  }, 30000);
+  
+  // Funds check during active windows - every 5 hours
+  setInterval(async () => {
+    if (isWithinActiveWindow() && userData.isActive) {
+      await checkFunds();
+    }
+  }, 5 * 60 * 60 * 1000);
+}
+
 // ======================= DATA ACCESS FUNCTIONS =======================
 
 function getUserData() {
