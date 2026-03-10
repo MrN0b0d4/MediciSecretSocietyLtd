@@ -1232,7 +1232,103 @@ async function proceedBrewing(sessionId) {
   return { success: false, error: 'Session not found' };
 }
 
-// ======================= INITIALIZATION =======================
+// ======================= SCHEDULING & INITIALIZATION =======================
+
+// Schedule daily plan
+function scheduleDailyPlan() {
+  // Clear existing timers
+  if (userData._achTimers) {
+    userData._achTimers.forEach(timer => clearTimeout(timer));
+  }
+  if (userData._dailyRolloverTimer) {
+    clearTimeout(userData._dailyRolloverTimer);
+  }
+  
+  userData._achTimers = [];
+  
+  // Compute today's window
+  const now = new Date();
+  const { effectiveStart, effectiveEnd } = computeEffectiveWindow(now);
+  
+  // Store the effective window (used by isWithinActiveWindow)
+  userData._effectiveStartUTC = effectiveStart;
+  userData._effectiveEndUTC = effectiveEnd;
+  
+  logActivity(`📅 Daily plan: ${effectiveStart.toUTCString()} to ${effectiveEnd.toUTCString()}`);
+  
+  // Schedule achievements
+  const claim1 = addMinutes(effectiveStart, 25);        // Start + 25m
+  const claim2 = addMinutes(claim1, 6 * 60);          // +6 hours from claim1
+  const claim3 = addMinutes(effectiveEnd, -15);        // End - 15m
+  
+  const scheduleClaim = (when, label) => {
+    const delay = when.getTime() - Date.now();
+    if (delay <= 0) {
+      logActivity(`⏭️ ${label} skipped (time passed)`);
+      return;
+    }
+    
+    const timer = setTimeout(async () => {
+      try {
+        if (userData.isActive) {
+          logActivity(`🏁 ${label} firing`);
+          await claimAchievements();
+        }
+      } catch (error) {
+        logActivity(`⚠️ ${label} error: ${error.message}`);
+      }
+    }, delay);
+    
+    userData._achTimers.push(timer);
+    logActivity(`⏰ ${label} scheduled for ${when.toUTCString()}`);
+  };
+  
+  scheduleClaim(claim1, 'Achievements #1 (Start+25m)');
+  scheduleClaim(claim2, 'Achievements #2 (+6h)');
+  scheduleClaim(claim3, 'Achievements #3 (End-15m)');
+  
+  // Schedule rollover for TOMORROW
+  const tomorrow = new Date(now);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  
+  const tomorrowStart = utcDateAt(
+    effectiveStart.getUTCHours(),
+    effectiveStart.getUTCMinutes(),
+    0, 0,
+    tomorrow
+  );
+  
+  const rolloverTime = addMinutes(tomorrowStart, 2);
+  const rolloverDelay = Math.max(rolloverTime.getTime() - Date.now(), 1000);
+  
+  userData._dailyRolloverTimer = setTimeout(() => {
+    logActivity('🔁 Daily rollover - scheduling next day');
+    scheduleDailyPlan();
+  }, rolloverDelay);
+  
+  logActivity(`⏰ Daily rollover scheduled for ${rolloverTime.toUTCString()}`);
+}
+
+// Continuous operations
+function startContinuousOperations(sprayerId) {
+  console.log('🚀 Starting continuous operations...');
+  
+  // Spray operations - check every 30 seconds
+  setInterval(async () => {
+    if (userData.isActive && isWithinActiveWindow()) {
+      if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
+        await executeScheduledSpray(sprayerId);
+      }
+    }
+  }, 30000);
+  
+  // Funds check during active windows - every 5 hours
+  setInterval(async () => {
+    if (isWithinActiveWindow() && userData.isActive) {
+      await checkFunds();
+    }
+  }, 5 * 60 * 60 * 1000);
+}
 
 // Initialize the spray service
 async function initialize() {
@@ -1261,27 +1357,6 @@ async function initialize() {
   } catch (error) {
     console.error('❌ Failed to initialize sprayer service:', error);
   }
-}
-
-// Continuous operations
-function startContinuousOperations(sprayerId) {
-  console.log('🚀 Starting continuous operations...');
-  
-  // Spray operations - check every 30 seconds
-  setInterval(async () => {
-    if (userData.isActive && isWithinActiveWindow()) {
-      if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
-        await executeScheduledSpray(sprayerId);
-      }
-    }
-  }, 30000);
-  
-  // Funds check during active windows - every 5 hours
-  setInterval(async () => {
-    if (isWithinActiveWindow() && userData.isActive) {
-      await checkFunds();
-    }
-  }, 5 * 60 * 60 * 1000);
 }
 
 // ======================= DATA ACCESS FUNCTIONS =======================
