@@ -1194,8 +1194,8 @@ async function initialize() {
       // Check funds
       checkFunds();
       
-      // Start continuous operations - default sprayerId 6865 will be overridden by frontend
-      startContinuousOperations(6865);
+      // Start continuous operations - default sprayerId 6898 will be overridden by frontend
+      startContinuousOperations(6898);
     }, 60000);
     
     console.log('✅ Sprayer service initialized successfully');
@@ -1267,7 +1267,7 @@ app.post('/api/refresh', async (req, res) => {
 });
 
 app.post('/api/scheduled-spray', async (req, res) => {
-  const { sprayerId = 6865 } = req.body;
+  const { sprayerId = 6898 } = req.body;
   const result = await executeScheduledSpray(sprayerId);
   res.json({ success: !!result, result });
 });
@@ -1285,7 +1285,7 @@ app.post('/api/check-funds', async (req, res) => {
 // Manual spray endpoint with buy spray logic
 app.post('/api/proxy/manual-spray', async (req, res) => {
   try {
-    const { sprayerId = 6865 } = req.body;
+    const { sprayerId = 6898 } = req.body;
     const result = await executeManualSpray(sprayerId);
     res.json(result);
   } catch (error) {
@@ -1299,7 +1299,7 @@ app.post('/api/proxy/manual-spray', async (req, res) => {
 // Multiple manual sprays
 app.post('/api/proxy/multiple-sprays', async (req, res) => {
   try {
-    const { count = 1, sprayerId = 6865 } = req.body;
+    const { count = 1, sprayerId = 6898 } = req.body;
     const results = await executeMultipleSprays(count, sprayerId);
     res.json(results);
   } catch (error) {
