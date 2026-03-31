@@ -60,16 +60,16 @@ let userData = {
   dailyAchievementsDone: false,
   
   // Scheduling parameters (weekday)
-  dayStart: '07:11',    // CET = UTC+1
-  dayEnd: '23:59',      // CET = UTC+1
+  dayStart: '06:11',    // CET = UTC+1
+  dayEnd: '22:59',      // CET = UTC+1
   jitter: 12,           // minutes
   baseInterval: 30,     // minutes
   randomScale1: 0,      // minutes
   randomScale2: 8,      // minutes
   
   // Weekend parameters
-  weekendDayStart: '08:44',    // CET = UTC+1 (07:44 UTC)
-  weekendDayEnd: '23:47',      // CET = UTC+1 (22:47 UTC)
+  weekendDayStart: '07:44',    // CET = UTC+1 (07:44 UTC)
+  weekendDayEnd: '22:47',      // CET = UTC+1 (22:47 UTC)
   weekendJitter: 42,           // minutes
   weekendBaseInterval: 30,     // minutes
   weekendRandomScale1: 5,      // minutes
