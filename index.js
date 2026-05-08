@@ -3,6 +3,25 @@ const { HttpsProxyAgent } = require('https-proxy-agent');
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
+
+// ====================== PERSISTENT CONFIG FILE =======================
+const CONFIG_FILE = path.join(__dirname, 'saved_config.json');
+
+// Load saved configuration
+let savedConfig = {
+  sprayerId: 6931
+};
+
+try {
+  if (fs.existsSync(CONFIG_FILE)) {
+    const data = fs.readFileSync(CONFIG_FILE, 'utf8');
+    savedConfig = JSON.parse(data);
+    console.log(`✅ Loaded saved config: sprayerId = ${savedConfig.sprayerId}`);
+  }
+} catch (error) {
+  console.log('No saved config found, using defaults');
+}
 
 // ====================== PROXY CONFIGURATION =======================
 const PROXY_CONFIG = {
@@ -28,6 +47,7 @@ const CONFIG = {
   URL_CARD_TEMPLATE: process.env.URL_CARD_TEMPLATE,
   URL_COLLECTIONS: process.env.URL_COLLECTIONS,
   URL_BREW: process.env.URL_BREW,
+  URL_MARKET_LIST: process.env.URL_MARKET_LIST || 'https://api.kolex.gg/api/v1/market/list'
 };
 
 // ======================= BREWING CONFIGURATION =======================
@@ -60,7 +80,7 @@ let userData = {
   dailyAchievementsDone: false,
   
   // Scheduling parameters (weekday)
-  dayStart: '06:11',    // CET = UTC+1
+  dayStart: '06:01',    // CET = UTC+1
   dayEnd: '22:59',      // CET = UTC+1
   jitter: 12,           // minutes
   baseInterval: 30,     // minutes
@@ -68,8 +88,8 @@ let userData = {
   randomScale2: 8,      // minutes
   
   // Weekend parameters
-  weekendDayStart: '07:44',    // CET = UTC+1 (07:44 UTC)
-  weekendDayEnd: '22:47',      // CET = UTC+1 (22:47 UTC)
+  weekendDayStart: '07:04',    // CET = UTC+1 (07:44 UTC)
+  weekendDayEnd: '23:47',      // CET = UTC+1 (22:47 UTC)
   weekendJitter: 42,           // minutes
   weekendBaseInterval: 30,     // minutes
   weekendRandomScale1: 5,      // minutes
@@ -99,6 +119,30 @@ const PRIZE_MAP = {
 };
 
 // ======================= UTILITY FUNCTIONS =======================
+
+// Save configuration to file
+function saveConfigToFile() {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(savedConfig, null, 2));
+    console.log(`✅ Saved config: sprayerId = ${savedConfig.sprayerId}`);
+    return true;
+  } catch (error) {
+    console.error('Failed to save config:', error);
+    return false;
+  }
+}
+
+// Get current sprayer ID
+function getCurrentSprayerId() {
+  return savedConfig.sprayerId;
+}
+
+// Update sprayer ID
+function updateSprayerId(newId) {
+  savedConfig.sprayerId = parseInt(newId) || 6931;
+  saveConfigToFile();
+  return savedConfig.sprayerId;
+}
 
 // Debug logging function
 function debugLog(action, url, method, headers = {}, data = null, response = null, error = null) {
@@ -763,6 +807,127 @@ async function getCardTemplates(templateIds) {
   return await makeAPIRequest(url, 'GET', headers);
 }
 
+// ======================= MARKET LISTING FUNCTIONS =======================
+
+// List a single card on the market
+async function listCardOnMarket(cardId, jwtToken, price) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-user-jwt': jwtToken
+  };
+  
+  const body = {
+    id: parseInt(cardId),
+    type: "card",
+    price: price.toString()
+  };
+  
+  const result = await makeAPIRequest(CONFIG.URL_MARKET_LIST, 'POST', headers, body);
+  
+  if (result.success && result.data) {
+    // Extract marketId from various possible response structures
+    let marketId = null;
+    if (result.data.data && result.data.data.marketId) {
+      marketId = result.data.data.marketId;
+    } else if (result.data.marketId) {
+      marketId = result.data.marketId;
+    } else if (result.data.data && result.data.data.data && result.data.data.data.marketId) {
+      marketId = result.data.data.data.marketId;
+    }
+    
+    return {
+      success: true,
+      marketId: marketId,
+      response: result.data
+    };
+  }
+  
+  return {
+    success: false,
+    error: result.error || 'Failed to list card',
+    response: result.responseData
+  };
+}
+
+// Execute multiple market listings
+async function executeMarketListings(cardIds, prices, jwtToken, delayMs, onProgress) {
+  const results = [];
+  let successful = 0;
+  let failed = 0;
+  let marketIds = [];
+  
+  for (let i = 0; i < cardIds.length; i++) {
+    const cardId = cardIds[i];
+    // Use corresponding price or repeat last price
+    let price = prices[i];
+    if (!price && prices.length > 0) {
+      price = prices[prices.length - 1];
+    }
+    
+    try {
+      const result = await listCardOnMarket(cardId, jwtToken, price);
+      
+      if (result.success) {
+        successful++;
+        marketIds.push({
+          cardId: cardId,
+          marketId: result.marketId,
+          price: price
+        });
+        results.push({
+          index: i + 1,
+          cardId: cardId,
+          price: price,
+          success: true,
+          marketId: result.marketId,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        failed++;
+        results.push({
+          index: i + 1,
+          cardId: cardId,
+          price: price,
+          success: false,
+          error: result.error,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      failed++;
+      results.push({
+        index: i + 1,
+        cardId: cardId,
+        price: price,
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Progress callback
+    if (onProgress) {
+      onProgress(i + 1, cardIds.length, successful, failed, marketIds);
+    }
+    
+    // Delay between requests (except after last)
+    if (i < cardIds.length - 1 && delayMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  
+  return {
+    success: true,
+    summary: {
+      total: cardIds.length,
+      successful: successful,
+      failed: failed
+    },
+    marketIds: marketIds,
+    results: results
+  };
+}
+
 // ======================= BREWING FUNCTIONS =======================
 
 // Check user funds for brewing
@@ -1103,9 +1268,13 @@ function scheduleDailyPlan() {
   logActivity(`📅 Daily plan: ${effectiveStart.toUTCString()} to ${effectiveEnd.toUTCString()}`);
   
   // Schedule achievements
-  const claim1 = addMinutes(effectiveStart, 25);        // Start + 25m
-  const claim2 = addMinutes(claim1, 6 * 60);          // +6 hours from claim1
-  const claim3 = addMinutes(effectiveEnd, -15);        // End - 15m
+  const claim1 = addMinutes(effectiveStart, 15);        // Start + 25m
+  const claim2 = addMinutes(claim1, 2 * 60);          // +6 hours from claim1
+  const claim3 = addMinutes(claim2, 3 * 60);          // +6 hours from claim1
+  const claim4 = addMinutes(claim3, 2 * 60);          // +6 hours from claim1
+  const claim5 = addMinutes(claim4, 3 * 60);          // +6 hours from claim1
+  const claim6 = addMinutes(claim5, 2 * 60);          // +6 hours from claim1
+  const claim7 = addMinutes(effectiveEnd, -15);        // End - 15m
   
   const scheduleClaim = (when, label) => {
     const delay = when.getTime() - Date.now();
@@ -1129,9 +1298,13 @@ function scheduleDailyPlan() {
     logActivity(`⏰ ${label} scheduled for ${when.toUTCString()}`);
   };
   
-  scheduleClaim(claim1, 'Achievements #1 (Start+25m)');
-  scheduleClaim(claim2, 'Achievements #2 (+6h)');
-  scheduleClaim(claim3, 'Achievements #3 (End-15m)');
+  scheduleClaim(claim1, 'A4 #1');
+  scheduleClaim(claim2, 'A4 #2');
+  scheduleClaim(claim3, 'A4 #3');
+  scheduleClaim(claim4, 'A4 #4');
+  scheduleClaim(claim5, 'A4 #5');
+  scheduleClaim(claim6, 'A4 #6');
+  scheduleClaim(claim7, 'A4 #7');
   
   // Schedule rollover for TOMORROW
   const tomorrow = new Date(now);
@@ -1194,8 +1367,8 @@ async function initialize() {
       // Check funds
       checkFunds();
       
-      // Start continuous operations - default sprayerId 6931 will be overridden by frontend
-      startContinuousOperations(6931);
+      // Start continuous operations - use saved sprayerId
+      startContinuousOperations(getCurrentSprayerId());
     }, 60000);
     
     console.log('✅ Sprayer service initialized successfully');
@@ -1245,7 +1418,10 @@ app.use(express.json());
 // Get user data for dashboard
 app.get('/api/user', (req, res) => {
   const safeData = getUserData();
-  res.json(safeData);
+  safeConfigData = {
+    sprayerId: getCurrentSprayerId()
+  };
+  res.json({ ...safeData, config: safeConfigData });
 });
 
 // Get activity logs
@@ -1260,6 +1436,26 @@ app.get('/api/debug-logs', (req, res) => {
   res.json(getDebugLogs(limit));
 });
 
+// ======================= CONFIGURATION API =======================
+
+// Get current config
+app.get('/api/config', (req, res) => {
+  res.json({
+    sprayerId: getCurrentSprayerId()
+  });
+});
+
+// Update sprayer ID
+app.post('/api/config/sprayer-id', (req, res) => {
+  const { sprayerId } = req.body;
+  if (sprayerId === undefined || isNaN(parseInt(sprayerId))) {
+    return res.status(400).json({ success: false, error: 'Invalid sprayer ID' });
+  }
+  
+  const newId = updateSprayerId(sprayerId);
+  res.json({ success: true, sprayerId: newId });
+});
+
 // Manual triggers
 app.post('/api/refresh', async (req, res) => {
   const success = await refreshToken();
@@ -1267,7 +1463,7 @@ app.post('/api/refresh', async (req, res) => {
 });
 
 app.post('/api/scheduled-spray', async (req, res) => {
-  const { sprayerId = 6931 } = req.body;
+  const { sprayerId = getCurrentSprayerId() } = req.body;
   const result = await executeScheduledSpray(sprayerId);
   res.json({ success: !!result, result });
 });
@@ -1285,7 +1481,7 @@ app.post('/api/check-funds', async (req, res) => {
 // Manual spray endpoint with buy spray logic
 app.post('/api/proxy/manual-spray', async (req, res) => {
   try {
-    const { sprayerId = 6931 } = req.body;
+    const { sprayerId = getCurrentSprayerId() } = req.body;
     const result = await executeManualSpray(sprayerId);
     res.json(result);
   } catch (error) {
@@ -1299,7 +1495,7 @@ app.post('/api/proxy/manual-spray', async (req, res) => {
 // Multiple manual sprays
 app.post('/api/proxy/multiple-sprays', async (req, res) => {
   try {
-    const { count = 1, sprayerId = 6931 } = req.body;
+    const { count = 1, sprayerId = getCurrentSprayerId() } = req.body;
     const results = await executeMultipleSprays(count, sprayerId);
     res.json(results);
   } catch (error) {
@@ -1352,6 +1548,65 @@ app.post('/api/proxy/card-templates', async (req, res) => {
   }
 });
 
+// ======================= MARKET LISTING API ROUTES =======================
+
+// Get current JWT token status
+app.get('/api/market/status', (req, res) => {
+  res.json({
+    hasToken: !!userData.jwtToken,
+    tokenValid: userData.isActive
+  });
+});
+
+// Execute market listings
+app.post('/api/market/list', async (req, res) => {
+  try {
+    const { 
+      cardIds,
+      prices,
+      delayMs = 1700
+    } = req.body;
+    
+    if (!cardIds || !Array.isArray(cardIds) || cardIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No card IDs provided' 
+      });
+    }
+    
+    if (!userData.jwtToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No JWT token available. Please ensure the bot has refreshed the token.' 
+      });
+    }
+    
+    if (!userData.isActive) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'JWT token is not active. Please wait for token refresh.' 
+      });
+    }
+    
+    const result = await executeMarketListings(
+      cardIds,
+      prices || [],
+      userData.jwtToken,
+      delayMs,
+      null // No progress callback for API route
+    );
+    
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Market listing error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // ======================= BREWING API ROUTES =======================
 
 // Execute brewing
@@ -1364,6 +1619,20 @@ app.post('/api/brewing/execute', async (req, res) => {
       maxBrews = 10,
       operationDelay = 3400
     } = req.body;
+    
+    if (!userData.jwtToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No JWT token available' 
+      });
+    }
+    
+    if (!userData.isActive) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'JWT token is not active' 
+      });
+    }
 
     // Create a stop request reference that can be accessed by the brewing function
     const stopRequestRef = { stopped: false };
@@ -1419,6 +1688,7 @@ const PORT = process.env.PORT || 8080;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Sprayer server running on port ${PORT}`);
   console.log(`📊 Dashboard available at http://localhost:${PORT} (or your Render URL)`);
+  console.log(`💾 Saved sprayer ID: ${getCurrentSprayerId()}`);
   
   // Initialize sprayer service (delayed to ensure token refresh first)
   setTimeout(() => {
