@@ -10,7 +10,7 @@ const CONFIG_FILE = path.join(__dirname, 'saved_config.json');
 
 // Load saved configuration
 let savedConfig = {
-  sprayerId: 6931
+  sprayerId: 6997
 };
 
 try {
@@ -139,7 +139,7 @@ function getCurrentSprayerId() {
 
 // Update sprayer ID
 function updateSprayerId(newId) {
-  savedConfig.sprayerId = parseInt(newId) || 6931;
+  savedConfig.sprayerId = parseInt(newId) || 6997;
   saveConfigToFile();
   return savedConfig.sprayerId;
 }
