@@ -47,8 +47,42 @@ const CONFIG = {
   URL_CARD_TEMPLATE: process.env.URL_CARD_TEMPLATE,
   URL_COLLECTIONS: process.env.URL_COLLECTIONS,
   URL_BREW: process.env.URL_BREW,
-  URL_MARKET_LIST: process.env.URL_MARKET_LIST || 'https://api.kolex.gg/api/v1/market/list'
+  URL_DROP: process.env.URL_DROP,
+  URL_MARKET_LIST: process.env.URL_MARKET_LIST
 };
+
+// ======================= PACK CONFIGURATION =======================
+let packConfig = {
+  packIds: [14129],
+  fetchDelay: 3000,
+  refreshIntervalHours: 3
+};
+
+// Load pack config from file
+const PACK_CONFIG_FILE = path.join(__dirname, 'pack_config.json');
+
+try {
+  if (fs.existsSync(PACK_CONFIG_FILE)) {
+    const data = fs.readFileSync(PACK_CONFIG_FILE, 'utf8');
+    const loaded = JSON.parse(data);
+    packConfig = { ...packConfig, ...loaded };
+    console.log(`✅ Loaded pack config: ${packConfig.packIds.length} pack IDs`);
+  }
+} catch (error) {
+  console.log('No saved pack config found, using defaults');
+}
+
+// Save pack config to file
+function savePackConfigToFile() {
+  try {
+    fs.writeFileSync(PACK_CONFIG_FILE, JSON.stringify(packConfig, null, 2));
+    console.log(`✅ Saved pack config: ${packConfig.packIds.length} pack IDs`);
+    return true;
+  } catch (error) {
+    console.error('Failed to save pack config:', error);
+    return false;
+  }
+}
 
 // ======================= BREWING CONFIGURATION =======================
 const BREWING_CONFIG = {
@@ -1545,6 +1579,65 @@ app.post('/api/proxy/card-templates', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ======================= PACK MONITOR API ROUTES =======================
+
+// Get pack config
+app.get('/api/packs/config', (req, res) => {
+  res.json(packConfig);
+});
+
+// Save pack config
+app.post('/api/packs/config', (req, res) => {
+  try {
+    const { packIds, fetchDelay, refreshIntervalHours } = req.body;
+    
+    if (packIds !== undefined) {
+      packConfig.packIds = Array.isArray(packIds) ? packIds : [];
+    }
+    if (fetchDelay !== undefined) {
+      packConfig.fetchDelay = parseInt(fetchDelay) || 3000;
+    }
+    if (refreshIntervalHours !== undefined) {
+      packConfig.refreshIntervalHours = parseFloat(refreshIntervalHours) || 3;
+    }
+    
+    savePackConfigToFile();
+    res.json({ success: true, config: packConfig });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get a single pack template by ID
+app.get('/api/packs/:packId', async (req, res) => {
+  try {
+    const packId = parseInt(req.params.packId);
+    if (isNaN(packId)) {
+      return res.status(400).json({ success: false, error: 'Invalid pack ID' });
+    }
+
+    if (!userData.jwtToken) {
+      return res.status(401).json({ success: false, error: 'No JWT token available' });
+    }
+
+    const headers = { 'x-user-jwt': userData.jwtToken };
+const url = `${CONFIG.URL_DROP}/${packId}`;
+    
+    const result = await makeAPIRequest(url, 'GET', headers);
+    
+    if (result.success) {
+      res.json({ success: true, data: result.data.data });
+    } else {
+      res.status(result.status || 500).json({ 
+        success: false, 
+        error: result.error || 'Failed to fetch pack'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

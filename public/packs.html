@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack Monitor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .accent {
+            color: #0891b2;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .controls .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .controls .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .controls .form-group input {
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 120px;
+            font-family: inherit;
+        }
+
+        .controls .form-group input:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        .controls .form-group input[type="text"] {
+            width: 400px;
+            min-width: 200px;
+        }
+
+        .btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            border-color: #0891b2;
+            color: #0891b2;
+            background: #f0fdff;
+        }
+
+        .btn-primary {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0c8599;
+            border-color: #0c8599;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+            border-color: #15803d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .status-item .label {
+            color: #64748b;
+        }
+
+        .status-item .value {
+            font-weight: 600;
+        }
+
+        .status-item .value.success {
+            color: #16a34a;
+        }
+        .status-item .value.warning {
+            color: #d97706;
+        }
+        .status-item .value.error {
+            color: #dc2626;
+        }
+
+        .last-update {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .save-feedback {
+            font-size: 12px;
+            color: #16a34a;
+            display: none;
+        }
+        .save-feedback.show {
+            display: inline;
+        }
+
+        /* Packs grid */
+        .packs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .pack-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 18px;
+            transition: border-color 0.2s;
+        }
+
+        .pack-card:hover {
+            border-color: #0891b2;
+        }
+
+        .pack-card .pack-id {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .pack-card .pack-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+
+        .pack-card .pack-name .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .pack-card .pack-name .status-dot.active {
+            background: #16a34a;
+        }
+        .pack-card .pack-name .status-dot.error {
+            background: #dc2626;
+        }
+        .pack-card .pack-name .status-dot.loading {
+            background: #d97706;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .pack-card .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .pack-card .row:last-child {
+            border-bottom: none;
+        }
+
+        .pack-card .row .label {
+            color: #64748b;
+        }
+
+        .pack-card .row .value {
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .pack-card .row .value .pct {
+            font-weight: 400;
+            color: #64748b;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        .pack-card .row .value .pct.good {
+            color: #16a34a;
+        }
+        .pack-card .row .value .pct.warn {
+            color: #d97706;
+        }
+        .pack-card .row .value .pct.bad {
+            color: #dc2626;
+        }
+
+        .pack-card .dates {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pack-card .dates span {
+            background: #f1f5f9;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+
+        .pack-card .error-msg {
+            color: #dc2626;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        .no-packs {
+            text-align: center;
+            color: #94a3b8;
+            padding: 60px 20px;
+            font-size: 16px;
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls .form-group input[type="text"] {
+                width: 100%;
+            }
+            .controls .form-group input {
+                width: 100%;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .packs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Pack <span class="accent">Monitor</span></h1>
+            <div class="controls">
+                <div class="form-group">
+                    <label>Pack IDs (comma separated)</label>
+                    <input type="text" id="packIdsInput" placeholder="14129, 14130, 14131">
+                </div>
+                <div class="form-group">
+                    <label>Fetch delay (ms)</label>
+                    <input type="number" id="fetchDelayInput" value="3000" min="500" step="100">
+                </div>
+                <div class="form-group">
+                    <label>Refresh interval (hours)</label>
+                    <input type="number" id="refreshIntervalInput" value="3" min="0.5" step="0.5">
+                </div>
+                <button class="btn btn-primary" id="saveConfigBtn">💾 Save</button>
+                <span class="save-feedback" id="saveFeedback">✓ Saved!</span>
+                <button class="btn btn-success" id="refreshBtn">🔄 Refresh Now</button>
+            </div>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="label">Status:</span>
+                <span class="value" id="statusText">Idle</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Pack IDs:</span>
+                <span class="value" id="packCountDisplay">0</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Last update:</span>
+                <span class="value" id="lastUpdateDisplay">Never</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Next refresh:</span>
+                <span class="value" id="nextRefreshDisplay">—</span>
+            </div>
+            <div class="status-item" style="margin-left:auto;">
+                <span class="last-update" id="tokenStatus">Token: Checking...</span>
+            </div>
+        </div>
+
+        <div class="packs-grid" id="packsContainer">
+            <div class="no-packs">Enter pack IDs and click "Refresh Now" or wait for auto-refresh.</div>
+        </div>
+    </div>
+
+    <script>
+        // ======================= CONFIG =======================
+        let config = {
+            packIds: [14129],
+            fetchDelay: 3000,
+            refreshIntervalHours: 3
+        };
+
+        let refreshTimer = null;
+        let isFetching = false;
+        let packData = {};
+
+        // ======================= DOM REFS =======================
+        const packIdsInput = document.getElementById('packIdsInput');
+        const fetchDelayInput = document.getElementById('fetchDelayInput');
+        const refreshIntervalInput = document.getElementById('refreshIntervalInput');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        const saveFeedback = document.getElementById('saveFeedback');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const packsContainer = document.getElementById('packsContainer');
+        const statusText = document.getElementById('statusText');
+        const packCountDisplay = document.getElementById('packCountDisplay');
+        const lastUpdateDisplay = document.getElementById('lastUpdateDisplay');
+        const nextRefreshDisplay = document.getElementById('nextRefreshDisplay');
+        const tokenStatus = document.getElementById('tokenStatus');
+
+        // ======================= UTILITY =======================
+        function formatNumber(num) {
+            return num.toLocaleString();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            } catch {
+                return dateStr;
+            }
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function getPct(value, total) {
+            if (!total || total === 0) return 0;
+            return (value / total) * 100;
+        }
+
+        function pctClass(pct) {
+            if (pct >= 90) return 'good';
+            if (pct >= 50) return 'warn';
+            return 'bad';
+        }
+
+        function pctDisplay(pct) {
+            return `${pct.toFixed(2)}%`;
+        }
+
+        // ======================= API =======================
+        async function fetchPackData(packId) {
+            try {
+                const resp = await fetch(`/api/packs/${packId}`);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                return data;
+            } catch (err) {
+                console.error(`Failed to fetch pack ${packId}:`, err);
+                return { success: false, error: err.message };
+            }
+        }
+
+        async function fetchTokenStatus() {
+            try {
+                const resp = await fetch('/api/market/status');
+                if (!resp.ok) throw new Error();
+                const data = await resp.json();
+                tokenStatus.textContent = data.hasToken && data.tokenValid ? '✅ Token valid' : '⚠️ No token';
+                tokenStatus.style.color = data.hasToken && data.tokenValid ? '#16a34a' : '#d97706';
+            } catch {
+                tokenStatus.textContent = '⚠️ Token unknown';
+                tokenStatus.style.color = '#d97706';
+            }
+        }
+
+        async function saveConfig() {
+            try {
+                const raw = packIdsInput.value.trim();
+                const ids = raw ? raw.split(',').map(s => s.trim()).filter(s => s && !isNaN(parseInt(s))).map(Number) : [];
+                const fetchDelay = parseInt(fetchDelayInput.value) || 3000;
+                const refreshIntervalHours = parseFloat(refreshIntervalInput.value) || 3;
+
+                const payload = {
+                    packIds: ids,
+                    fetchDelay: fetchDelay,
+                    refreshIntervalHours: refreshIntervalHours
+                };
+
+                const resp = await fetch('/api/packs/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) throw new Error('Failed to save');
+
+                config.packIds = ids;
+                config.fetchDelay = fetchDelay;
+                config.refreshIntervalHours = refreshIntervalHours;
+
+                saveFeedback.classList.add('show');
+                setTimeout(() => saveFeedback.classList.remove('show'), 3000);
+
+                packCountDisplay.textContent = ids.length;
+                if (ids.length > 0) {
+                    await fetchAllPacks();
+                }
+
+                return true;
+            } catch (err) {
+                alert(`Error saving config: ${err.message}`);
+                return false;
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const resp = await fetch('/api/packs/config');
+                if (!resp.ok) throw new Error();
+                const data = await resp.json();
+
+                if (data.packIds && data.packIds.length > 0) {
+                    config.packIds = data.packIds;
+                    packIdsInput.value = data.packIds.join(', ');
+                }
+                if (data.fetchDelay) {
+                    config.fetchDelay = data.fetchDelay;
+                    fetchDelayInput.value = data.fetchDelay;
+                }
+                if (data.refreshIntervalHours) {
+                    config.refreshIntervalHours = data.refreshIntervalHours;
+                    refreshIntervalInput.value = data.refreshIntervalHours;
+                }
+
+                packCountDisplay.textContent = config.packIds.length;
+                return true;
+            } catch (err) {
+                console.log('No saved config, using defaults');
+                return false;
+            }
+        }
+
+        // ======================= FETCH ALL PACKS =======================
+        async function fetchAllPacks() {
+            if (isFetching) return;
+            if (!config.packIds || config.packIds.length === 0) {
+                packsContainer.innerHTML = `<div class="no-packs">No pack IDs configured.</div>`;
+                return;
+            }
+
+            isFetching = true;
+            statusText.textContent = 'Fetching...';
+            refreshBtn.disabled = true;
+
+            const ids = config.packIds;
+            const delay = config.fetchDelay;
+
+            // Clear and show loading skeletons
+            packsContainer.innerHTML = '';
+            ids.forEach(id => {
+                const card = document.createElement('div');
+                card.className = 'pack-card';
+                card.id = `pack-${id}`;
+                card.innerHTML = `
+                    <div class="pack-id">ID: ${id}</div>
+                    <div class="pack-name"><span class="status-dot loading"></span> Loading...</div>
+                    <div class="row"><span class="label">Remaining</span><span class="value">—</span></div>
+                    <div class="row"><span class="label">Opened</span><span class="value">—</span></div>
+                    <div class="row"><span class="label">Owned by users</span><span class="value">—</span></div>
+                    <div class="dates"><span>Loading...</span></div>
+                `;
+                packsContainer.appendChild(card);
+            });
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                try {
+                    const result = await fetchPackData(id);
+                    if (result.success && result.data) {
+                        packData[id] = result.data;
+                        successCount++;
+                        renderPackCard(id, result.data);
+                    } else {
+                        failCount++;
+                        renderErrorCard(id, result.error || 'Failed to fetch');
+                    }
+                } catch (err) {
+                    failCount++;
+                    renderErrorCard(id, err.message);
+                }
+
+                // Update status
+                statusText.textContent = `Fetching ${i+1}/${ids.length}... (${successCount} ok, ${failCount} fail)`;
+
+                // Delay between fetches (except last)
+                if (i < ids.length - 1 && delay > 0) {
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
+
+            statusText.textContent = `Done: ${successCount} success, ${failCount} failed`;
+            lastUpdateDisplay.textContent = formatTime(new Date());
+
+            // Schedule next refresh
+            scheduleNextRefresh();
+
+            isFetching = false;
+            refreshBtn.disabled = false;
+        }
+
+        function renderPackCard(id, data) {
+            const card = document.getElementById(`pack-${id}`);
+            if (!card) return;
+
+            const name = data.name || 'Unknown Pack';
+            const mintCount = data.mintCount || 0;
+            const inventoryCount = data.inventoryCount || 0;
+            const openedCount = data.openedCount || 0;
+
+            const remainingPct = getPct(inventoryCount, mintCount);
+            const openedPct = getPct(openedCount, mintCount);
+            const ownedByUsers = Math.max(0, mintCount - inventoryCount - openedCount);
+            const ownedPct = getPct(ownedByUsers, mintCount);
+
+            const purchaseEnd = data.purchaseEnd || '';
+            const marketStart = data.marketStart || '';
+
+            card.innerHTML = `
+                <div class="pack-id">ID: ${id}</div>
+                <div class="pack-name"><span class="status-dot active"></span> ${name}</div>
+                <div class="row">
+                    <span class="label">Remaining</span>
+                    <span class="value">${formatNumber(inventoryCount)} / ${formatNumber(mintCount)} <span class="pct ${pctClass(remainingPct)}">${pctDisplay(remainingPct)}</span></span>
+                </div>
+                <div class="row">
+                    <span class="label">Opened</span>
+                    <span class="value">${formatNumber(openedCount)} <span class="pct ${pctClass(openedPct)}">${pctDisplay(openedPct)}</span></span>
+                </div>
+                <div class="row">
+                    <span class="label">Owned by users</span>
+                    <span class="value">${formatNumber(ownedByUsers)} <span class="pct ${pctClass(ownedPct)}">${pctDisplay(ownedPct)}</span></span>
+                </div>
+                <div class="dates">
+                    <span>Sale end: ${formatDate(purchaseEnd)}</span>
+                    <span>Market open: ${formatDate(marketStart)}</span>
+                </div>
+            `;
+        }
+
+        function renderErrorCard(id, error) {
+            const card = document.getElementById(`pack-${id}`);
+            if (!card) return;
+
+            card.innerHTML = `
+                <div class="pack-id">ID: ${id}</div>
+                <div class="pack-name"><span class="status-dot error"></span> Error</div>
+                <div class="error-msg">⚠️ ${error}</div>
+                <div class="dates"><span>—</span><span>—</span></div>
+            `;
+        }
+
+        // ======================= REFRESH SCHEDULING =======================
+        function scheduleNextRefresh() {
+            if (refreshTimer) {
+                clearTimeout(refreshTimer);
+                refreshTimer = null;
+            }
+
+            if (!config.refreshIntervalHours || config.refreshIntervalHours <= 0) {
+                nextRefreshDisplay.textContent = 'Disabled';
+                return;
+            }
+
+            const delayMs = config.refreshIntervalHours * 60 * 60 * 1000;
+            const nextTime = new Date(Date.now() + delayMs);
+            nextRefreshDisplay.textContent = formatTime(nextTime);
+
+            refreshTimer = setTimeout(() => {
+                console.log('🔄 Auto-refresh triggered');
+                fetchAllPacks();
+            }, delayMs);
+        }
+
+        // ======================= INIT =======================
+        async function init() {
+            await loadConfig();
+            await fetchTokenStatus();
+
+            // If we have pack IDs, fetch them
+            if (config.packIds && config.packIds.length > 0) {
+                await fetchAllPacks();
+            } else {
+                packsContainer.innerHTML = `<div class="no-packs">Enter pack IDs and click "Refresh Now" or wait for auto-refresh.</div>`;
+            }
+
+            // Periodically check token status
+            setInterval(fetchTokenStatus, 60000);
+        }
+
+        // ======================= EVENT LISTENERS =======================
+        refreshBtn.addEventListener('click', () => {
+            // Save current config first (so we use latest inputs)
+            const raw = packIdsInput.value.trim();
+            const ids = raw ? raw.split(',').map(s => s.trim()).filter(s => s && !isNaN(parseInt(s))).map(Number) : [];
+            const fetchDelay = parseInt(fetchDelayInput.value) || 3000;
+            const refreshIntervalHours = parseFloat(refreshIntervalInput.value) || 3;
+
+            config.packIds = ids;
+            config.fetchDelay = fetchDelay;
+            config.refreshIntervalHours = refreshIntervalHours;
+
+            packCountDisplay.textContent = ids.length;
+            fetchAllPacks();
+        });
+
+        saveConfigBtn.addEventListener('click', saveConfig);
+
+        // Enter key on pack IDs input triggers refresh
+        packIdsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                refreshBtn.click();
+            }
+        });
+
+        // ======================= START =======================
+        init();
+    </script>
+</body>
+</html>
