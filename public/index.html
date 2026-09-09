@@ -164,6 +164,16 @@
             background: #b91c1c;
         }
         
+        .btn-warning {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #b45309;
+        }
+        
         .btn-brew {
             background: var(--brew);
             border-color: var(--brew);
@@ -632,6 +642,62 @@
             margin-top: 5px;
         }
         
+        .compact-cards {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--primary);
+        }
+        
+        .bg-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .bg-controls .status {
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .bg-controls .status.running {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .bg-controls .status.stopped {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .settings-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+            margin-bottom: 15px;
+        }
+        
+        .settings-row .form-group {
+            flex: 1;
+            min-width: 120px;
+            margin-bottom: 0;
+        }
+        
+        .settings-row .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+        
+        .settings-row .form-group input {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -648,6 +714,12 @@
                 align-items: stretch;
             }
             .sprayer-id-input input {
+                width: 100%;
+            }
+            .settings-row {
+                flex-direction: column;
+            }
+            .settings-row .form-group {
                 width: 100%;
             }
         }
@@ -705,28 +777,28 @@
                 </div>
             </div>
             <div class="card">
-                <div class="card-header"><h2>Daily Schedule</h2></div>
+                <div class="card-header"><h2>Schedule & Controls</h2></div>
                 <div class="card-content">
                     <div class="info-grid">
                         <div class="info-label">Start Time (CET):</div><div class="info-value" id="dayStart">06:11 ±12m</div>
                         <div class="info-label">End Time (CET):</div><div class="info-value" id="dayEnd">22:59</div>
                         <div class="info-label">Spray Interval:</div><div class="info-value" id="sprayInterval">30+0-8m</div>
-
+                    </div>
+                    <div class="sprayer-id-input">
+                        <label for="sprayerId">Sprayer ID:</label>
+                        <input type="number" id="sprayerId" min="1" value="7030">
+                        <button class="btn btn-primary" id="saveSprayerIdBtn">💾 Save</button>
+                    </div>
+                    <div id="configSaveStatus" style="font-size:11px;margin-top:8px;color:var(--success);display:none;">✓ saved!</div>
+                    
+                    <div class="bg-controls">
+                        <span class="status running" id="bgStatus">Running</span>
+                        <button class="btn btn-danger" id="stopBgSprayBtn">⏹️ Stop Background</button>
+                        <button class="btn btn-success" id="startBgSprayBtn" style="display:none;">▶️ Start Background</button>
                     </div>
                 </div>
-				            <div class="card-content">
-                <div class="sprayer-id-input">
-                    <label for="sprayerId">Sprayer ID:</label>
-                    <input type="number" id="sprayerId" min="1" value="6997">
-                    <button class="btn btn-primary" id="saveSprayerIdBtn">💾 Save</button>
-                    
-                </div>
-                <div id="configSaveStatus" style="font-size:11px;margin-top:8px;color:var(--success);display:none;">✓ saved!</div>
-            </div>
             </div>
         </div>
-
-	
 
         <!-- Tabs -->
         <div class="card">
@@ -742,8 +814,20 @@
                     
                     <!-- Sprayer Tab -->
                     <div class="tab-content active" id="tab-sprayer">
-                        <div class="form-group"><label for="sprayCount">Number of sprays:</label><input type="number" id="sprayCount" min="1" max="10000" value="10"></div>
-                        <div class="btn-group"><button id="startSpraysBtn" class="btn btn-primary">🎰 Start Spraying</button><button id="stopSpraysBtn" class="btn btn-danger" disabled>⏹️ Stop</button></div>
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label for="sprayCount">Number of sprays:</label>
+                                <input type="number" id="sprayCount" min="1" max="10000" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label for="sprayDelay">Delay (ms):</label>
+                                <input type="number" id="sprayDelay" min="500" max="30000" value="2700">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button id="startSpraysBtn" class="btn btn-primary">🎰 Start Spraying</button>
+                            <button id="stopSpraysBtn" class="btn btn-danger" disabled>⏹️ Stop</button>
+                        </div>
                         <div id="sprayProgress" class="progress-container" style="display:none"><div class="progress-bar" id="sprayProgressBar"></div></div>
                         <div id="sprayStats" class="stats-grid" style="display:none">
                             <div class="stat-box"><div class="stat-value" id="completedSprays">0</div><div class="stat-label">Completed</div></div>
@@ -767,11 +851,29 @@
                         <div id="openPacksSection" style="margin-top:20px;display:none">
                             <h3>Open Packs</h3>
                             <div class="open-controls">
-                                <div class="open-control-item"><label for="packGroupSelect">Select Pack Group:</label><select id="packGroupSelect"><option value="">-- Select a pack type --</option></select></div>
-                                <div class="open-control-item"><label for="packsToOpen">Number of packs:</label><input type="number" id="packsToOpen" min="1" value="1"></div>
-                                <div class="open-control-item checkbox-group"><input type="checkbox" id="openOldestFirst" checked><label for="openOldestFirst">Open oldest first (smallest IDs)</label></div>
+                                <div class="open-control-item">
+                                    <label for="packGroupSelect">Select Pack Group:</label>
+                                    <select id="packGroupSelect">
+                                        <option value="">-- Select a pack type --</option>
+                                    </select>
+                                </div>
+                                <div class="open-control-item">
+                                    <label for="packsToOpen">Number of packs:</label>
+                                    <input type="number" id="packsToOpen" min="1" value="1">
+                                </div>
+                                <div class="open-control-item">
+                                    <label for="packOpenDelay">Delay (ms):</label>
+                                    <input type="number" id="packOpenDelay" min="500" max="30000" value="2700">
+                                </div>
+                                <div class="open-control-item checkbox-group">
+                                    <input type="checkbox" id="openOldestFirst" checked>
+                                    <label for="openOldestFirst">Open oldest first</label>
+                                </div>
                             </div>
-                            <div class="btn-group"><button id="openPacksBtn" class="btn btn-success">Start Opening</button><button id="stopOpenPacksBtn" class="btn btn-danger" style="display:none">Stop</button></div>
+                            <div class="btn-group">
+                                <button id="openPacksBtn" class="btn btn-success">Start Opening</button>
+                                <button id="stopOpenPacksBtn" class="btn btn-danger" style="display:none">Stop</button>
+                            </div>
                             <div id="packOpenProgress" class="progress-container" style="display:none"><div class="progress-bar" id="packOpenProgressBar"></div></div>
                         </div>
                         <h3>Opening Results:</h3><div id="packResults" class="results-container"><div style="text-align:center;color:var(--secondary);padding:20px;">No packs opened yet.</div></div>
@@ -836,77 +938,240 @@
 
     <script>
 let refreshInterval = null;
-let isSpraying = false, isOpeningPacks = false, isBrewing = false, isListing = false, stopListing = false;
-let stopRequested = false;  // <-- ADD THIS LINE
+let isSpraying = false, isOpeningPacks = false, isBrewing = false, isListing = false;
+let stopRequested = false;
 let allPacks = [], packGroups = {}, selectedGroupPacks = [];
-        let currentListingInterval = null;
+let currentListingInterval = null;
+let isBgRunning = true;
         
-        const prizeMap = {11986:"5,000 Silvercoins",11981:"Core 2026 Standard Pack",12013:"EPL 23 Pack",11980:"500 Silvercoins",11985:"1,000,000 Silvercoins",11984:"100,000 Silvercoins",11983:"2,500 Silvercoins",11982:"1,000 Silvercoins"};
+const prizeMap = {11986:"5,000 Silvercoins",11981:"Core 2026 Standard Pack",12013:"EPL 23 Pack",11980:"500 Silvercoins",11985:"1,000,000 Silvercoins",11984:"100,000 Silvercoins",11983:"2,500 Silvercoins",11982:"1,000 Silvercoins"};
         
-        function formatTime(iso) { if(!iso) return '—'; try{ return new Date(iso).toLocaleString(); }catch{ return '—'; } }
-        function formatWindowTime(d) { if(!d) return '—'; try{ return new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }catch{ return '—'; } }
-        function timeUntil(iso) { if(!iso) return ''; try{ let diff=Math.round((new Date(iso)-Date.now())/60000); if(diff>0) return `in ${diff}m`; if(diff<0) return `${Math.abs(diff)}m ago`; return 'now'; }catch{ return ''; } }
+function formatTime(iso) { if(!iso) return '—'; try{ return new Date(iso).toLocaleString(); }catch{ return '—'; } }
+function formatWindowTime(d) { if(!d) return '—'; try{ return new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }catch{ return '—'; } }
+function timeUntil(iso) { if(!iso) return ''; try{ let diff=Math.round((new Date(iso)-Date.now())/60000); if(diff>0) return `in ${diff}m`; if(diff<0) return `${Math.abs(diff)}m ago`; return 'now'; }catch{ return ''; } }
         
-        async function fetchUserData() { try{ const r=await fetch('/api/user'); if(!r.ok)throw new Error(); return await r.json(); }catch{ return null; } }
-        async function fetchActivityLogs() { try{ const r=await fetch('/api/activity?limit=50'); if(!r.ok)throw new Error(); return await r.json(); }catch{ return []; } }
-        async function performAction(endpoint,data={}){ const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); const d=await r.json(); if(!r.ok)throw new Error(d.message); return d; }
+async function fetchUserData() { try{ const r=await fetch('/api/user'); if(!r.ok)throw new Error(); return await r.json(); }catch{ return null; } }
+async function fetchActivityLogs() { try{ const r=await fetch('/api/activity?limit=50'); if(!r.ok)throw new Error(); return await r.json(); }catch{ return []; } }
+async function performAction(endpoint,data={}){ const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); const d=await r.json(); if(!r.ok)throw new Error(d.message); return d; }
         
-        async function loadSprayerConfig(){ try{ const r=await fetch('/api/config'); if(!r.ok)throw new Error(); const cfg=await r.json(); document.getElementById('sprayerId').value=cfg.sprayerId; }catch(e){ console.error(e); } }
-        async function saveSprayerConfig(){ const id=document.getElementById('sprayerId').value; try{ const r=await fetch('/api/config/sprayer-id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sprayerId:parseInt(id)})}); if(!r.ok)throw new Error(); const st=document.getElementById('configSaveStatus'); st.style.display='block'; setTimeout(()=>st.style.display='none',3000); }catch(e){ alert('Failed to save config'); } }
+async function loadSprayerConfig(){ try{ const r=await fetch('/api/config'); if(!r.ok)throw new Error(); const cfg=await r.json(); document.getElementById('sprayerId').value=cfg.sprayerId||7030; isBgRunning=cfg.sprayRunning!==false; updateBgStatus(); }catch(e){ console.error(e); } }
+async function saveSprayerConfig(){ const id=document.getElementById('sprayerId').value; try{ const r=await fetch('/api/config/sprayer-id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sprayerId:parseInt(id)})}); if(!r.ok)throw new Error(); const st=document.getElementById('configSaveStatus'); st.style.display='block'; setTimeout(()=>st.style.display='none',3000); }catch(e){ alert('Failed to save config'); } }
         
-        function updateUserStatus(d){ document.getElementById('statusBadge').textContent=d.isActive?'Active':'Inactive'; document.getElementById('statusBadge').className=`status-badge ${d.isActive?'status-active':'status-inactive'}`; document.getElementById('userId').textContent=d.userId||'Not set'; document.getElementById('tokenStatus').textContent=d.jwtToken?'✅ Valid':'❌ Missing'; document.getElementById('lastRefresh').textContent=formatTime(d.lastRefresh); const now=new Date(),start=d._effectiveStartUTC?new Date(d._effectiveStartUTC):null,end=d._effectiveEndUTC?new Date(d._effectiveEndUTC):null; if(start&&end){ document.getElementById('activeWindowStatus').textContent=(now>=start&&now<=end)?'✅ Active':'⏸️ Inactive'; document.getElementById('windowTimes').textContent=`${formatWindowTime(start)} — ${formatWindowTime(end)}`; } const isWeekend=now.getUTCDay()===0||now.getUTCDay()===6; document.getElementById('weekendMode').textContent=isWeekend?'✅ Yes':'No'; document.getElementById('weekendIndicator').style.display=isWeekend?'inline':'none'; }
-        function updateStatistics(d){ document.getElementById('totalSprays').textContent=d.sprayCount||0; document.getElementById('achievementsClaimed').textContent=d.achievementsClaimed||0; document.getElementById('currentFunds').textContent=(d.lastFunds||0).toLocaleString(); document.getElementById('fundsChecks').textContent=d.dailyFundsChecks||0; const nextEl=document.getElementById('nextSprayTime'),cdEl=document.getElementById('nextSprayCountdown'); if(d.nextSprayTime){ nextEl.textContent=formatTime(d.nextSprayTime); cdEl.textContent=timeUntil(d.nextSprayTime); }else{ nextEl.textContent='—'; cdEl.textContent=''; } }
+function updateBgStatus() {
+    const statusEl = document.getElementById('bgStatus');
+    const stopBtn = document.getElementById('stopBgSprayBtn');
+    const startBtn = document.getElementById('startBgSprayBtn');
+    if (isBgRunning) {
+        statusEl.textContent = 'Running';
+        statusEl.className = 'status running';
+        stopBtn.style.display = 'inline-block';
+        startBtn.style.display = 'none';
+    } else {
+        statusEl.textContent = 'Stopped';
+        statusEl.className = 'status stopped';
+        stopBtn.style.display = 'none';
+        startBtn.style.display = 'inline-block';
+    }
+}
+        
+function updateUserStatus(d){ 
+    document.getElementById('statusBadge').textContent=d.isActive?'Active':'Inactive'; 
+    document.getElementById('statusBadge').className=`status-badge ${d.isActive?'status-active':'status-inactive'}`; 
+    document.getElementById('userId').textContent=d.userId||'Not set'; 
+    document.getElementById('tokenStatus').textContent=d.jwtToken?'✅ Valid':'❌ Missing'; 
+    document.getElementById('lastRefresh').textContent=formatTime(d.lastRefresh); 
+    const now=new Date(),start=d._effectiveStartUTC?new Date(d._effectiveStartUTC):null,end=d._effectiveEndUTC?new Date(d._effectiveEndUTC):null; 
+    if(start&&end){ document.getElementById('activeWindowStatus').textContent=(now>=start&&now<=end)?'✅ Active':'⏸️ Inactive'; document.getElementById('windowTimes').textContent=`${formatWindowTime(start)} — ${formatWindowTime(end)}`; } 
+    const isWeekend=now.getUTCDay()===0||now.getUTCDay()===6; 
+    document.getElementById('weekendMode').textContent=isWeekend?'✅ Yes':'No'; 
+    document.getElementById('weekendIndicator').style.display=isWeekend?'inline':'none'; 
+    if (d.config && d.config.sprayRunning !== undefined) {
+        isBgRunning = d.config.sprayRunning;
+        updateBgStatus();
+    }
+}
+function updateStatistics(d){ document.getElementById('totalSprays').textContent=d.sprayCount||0; document.getElementById('achievementsClaimed').textContent=d.achievementsClaimed||0; document.getElementById('currentFunds').textContent=(d.lastFunds||0).toLocaleString(); document.getElementById('fundsChecks').textContent=d.dailyFundsChecks||0; const nextEl=document.getElementById('nextSprayTime'),cdEl=document.getElementById('nextSprayCountdown'); if(d.nextSprayTime){ nextEl.textContent=formatTime(d.nextSprayTime); cdEl.textContent=timeUntil(d.nextSprayTime); }else{ nextEl.textContent='—'; cdEl.textContent=''; } }
 function updateSchedule(d){ 
     document.getElementById('dayStart').textContent=`${d.dayStart} ±${d.jitter}m`; 
     document.getElementById('dayEnd').textContent=d.dayEnd; 
     document.getElementById('sprayInterval').textContent=`${d.baseInterval}+${d.randomScale1}-${d.randomScale2}m`; 
 }
-        function updateActivityLogs(logs){ const c=document.getElementById('activityLogs'); if(!logs||!logs.length){ c.innerHTML='<div class="log-entry">No activity logs yet.</div>'; return; } c.innerHTML=logs.map(l=>`<div class="log-entry"><span class="log-time">[${new Date(l.timestamp).toLocaleTimeString()}]</span> ${l.message}</div>`).join(''); c.scrollTop=0; }
+function updateActivityLogs(logs){ const c=document.getElementById('activityLogs'); if(!logs||!logs.length){ c.innerHTML='<div class="log-entry">No activity logs yet.</div>'; return; } c.innerHTML=logs.map(l=>`<div class="log-entry"><span class="log-time">[${new Date(l.timestamp).toLocaleTimeString()}]</span> ${l.message}</div>`).join(''); c.scrollTop=0; }
         
-        async function updateAll(){ try{ const [ud,logs]=await Promise.all([fetchUserData(),fetchActivityLogs()]); if(ud){ updateUserStatus(ud); updateStatistics(ud); updateSchedule(ud); } updateActivityLogs(logs); }catch(e){ console.error(e); } }
+async function updateAll(){ try{ const [ud,logs]=await Promise.all([fetchUserData(),fetchActivityLogs()]); if(ud){ updateUserStatus(ud); updateStatistics(ud); updateSchedule(ud); } updateActivityLogs(logs); }catch(e){ console.error(e); } }
         
-        async function executeMultipleSprays(count){ if(isSpraying)return; isSpraying=true; const sprayerId=document.getElementById('sprayerId').value; const startBtn=document.getElementById('startSpraysBtn'),stopBtn=document.getElementById('stopSpraysBtn'),prog=document.getElementById('sprayProgress'),bar=document.getElementById('sprayProgressBar'),stats=document.getElementById('sprayStats'),summ=document.getElementById('summaryStats'),res=document.getElementById('sprayResults'); startBtn.disabled=true; stopBtn.disabled=false; prog.style.display='block'; stats.style.display='grid'; summ.style.display='none'; res.innerHTML=''; document.getElementById('completedSprays').textContent='0'; document.getElementById('successfulSprays').textContent='0'; document.getElementById('failedSprays').textContent='0'; document.getElementById('estimatedTime').textContent=`${Math.round(count*2.7)}s`; try{ const resp=await fetch('/api/proxy/multiple-sprays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({count,sprayerId})}); if(!resp.ok)throw new Error(`HTTP ${resp.status}`); const data=await resp.json(); if(!data.success)throw new Error(data.error); data.results.forEach((r,idx)=>{ const div=document.createElement('div'); if(r.success){ div.className='result-item success'; div.innerHTML=`<strong>Spray ${r.spray}:</strong> ${prizeMap[r.prizeId]||`ID=${r.prizeId}`}<div class="prize-info">${new Date(r.timestamp).toLocaleTimeString()}</div>`; }else{ div.className='result-item error'; div.innerHTML=`<strong>Spray ${r.spray}:</strong> Failed<div class="prize-info">Error: ${r.error||'Unknown'}</div>`; } res.appendChild(div); const pct=((idx+1)/count)*100; bar.style.width=`${pct}%`; bar.textContent=`${Math.round(pct)}%`; document.getElementById('completedSprays').textContent=idx+1; if(r.success)document.getElementById('successfulSprays').textContent=parseInt(document.getElementById('successfulSprays').textContent)+1; else document.getElementById('failedSprays').textContent=parseInt(document.getElementById('failedSprays').textContent)+1; }); document.getElementById('completedSprays').textContent=data.summary.totalRequested; document.getElementById('successfulSprays').textContent=data.summary.successful; document.getElementById('failedSprays').textContent=data.summary.failed; summ.style.display='grid'; document.getElementById('initialFunds').textContent=data.summary.initialFunds?.toLocaleString()||'0'; document.getElementById('finalFunds').textContent=data.summary.finalFunds?.toLocaleString()||'0'; document.getElementById('fundsSpent').textContent=data.summary.fundsSpent?.toLocaleString()||'0'; document.getElementById('returnPercent').textContent=`${data.summary.returnPercentage}%`; const sumDiv=document.createElement('div'); sumDiv.className='result-item'; sumDiv.innerHTML=`<strong>Summary:</strong><br>• Total: ${data.summary.totalRequested}<br>• Successful: ${data.summary.successful}<br>• Failed: ${data.summary.failed}<br>• Initial: ${data.summary.initialFunds?.toLocaleString()}<br>• Final: ${data.summary.finalFunds?.toLocaleString()}<br>• Spent: ${data.summary.fundsSpent?.toLocaleString()}<br>• Return: ${data.summary.returnPercentage}%`; res.appendChild(sumDiv); }catch(e){ const div=document.createElement('div'); div.className='result-item error'; div.innerHTML=`<strong>Error:</strong> ${e.message}`; res.appendChild(div); }finally{ startBtn.disabled=false; stopBtn.disabled=true; isSpraying=false; } }
+async function executeMultipleSprays(count){ 
+    if(isSpraying)return; 
+    isSpraying=true; 
+    const sprayerId=document.getElementById('sprayerId').value;
+    const delayMs=parseInt(document.getElementById('sprayDelay').value) || 2700;
+    const startBtn=document.getElementById('startSpraysBtn'),stopBtn=document.getElementById('stopSpraysBtn'),prog=document.getElementById('sprayProgress'),bar=document.getElementById('sprayProgressBar'),stats=document.getElementById('sprayStats'),summ=document.getElementById('summaryStats'),res=document.getElementById('sprayResults'); 
+    startBtn.disabled=true; stopBtn.disabled=false; prog.style.display='block'; stats.style.display='grid'; summ.style.display='none'; res.innerHTML=''; document.getElementById('completedSprays').textContent='0'; document.getElementById('successfulSprays').textContent='0'; document.getElementById('failedSprays').textContent='0'; document.getElementById('estimatedTime').textContent=`${Math.round(count*(delayMs/1000))}s`; 
+    try{ const resp=await fetch('/api/proxy/multiple-sprays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({count,sprayerId,delayMs})}); if(!resp.ok)throw new Error(`HTTP ${resp.status}`); const data=await resp.json(); if(!data.success)throw new Error(data.error); data.results.forEach((r,idx)=>{ const div=document.createElement('div'); if(r.success){ div.className='result-item success'; div.innerHTML=`<strong>Spray ${r.spray}:</strong> ${prizeMap[r.prizeId]||`ID=${r.prizeId}`}<div class="prize-info">${new Date(r.timestamp).toLocaleTimeString()}</div>`; }else{ div.className='result-item error'; div.innerHTML=`<strong>Spray ${r.spray}:</strong> Failed<div class="prize-info">Error: ${r.error||'Unknown'}</div>`; } res.appendChild(div); const pct=((idx+1)/count)*100; bar.style.width=`${pct}%`; bar.textContent=`${Math.round(pct)}%`; document.getElementById('completedSprays').textContent=idx+1; }); document.getElementById('completedSprays').textContent=data.summary.totalRequested; document.getElementById('successfulSprays').textContent=data.summary.successful; document.getElementById('failedSprays').textContent=data.summary.failed; summ.style.display='grid'; document.getElementById('initialFunds').textContent=data.summary.initialFunds?.toLocaleString()||'0'; document.getElementById('finalFunds').textContent=data.summary.finalFunds?.toLocaleString()||'0'; document.getElementById('fundsSpent').textContent=data.summary.fundsSpent?.toLocaleString()||'0'; document.getElementById('returnPercent').textContent=`${data.summary.returnPercentage}%`; const sumDiv=document.createElement('div'); sumDiv.className='result-item'; sumDiv.innerHTML=`<strong>Summary:</strong><br>• Total: ${data.summary.totalRequested}<br>• Successful: ${data.summary.successful}<br>• Failed: ${data.summary.failed}<br>• Initial: ${data.summary.initialFunds?.toLocaleString()}<br>• Final: ${data.summary.finalFunds?.toLocaleString()}<br>• Spent: ${data.summary.fundsSpent?.toLocaleString()}<br>• Return: ${data.summary.returnPercentage}%`; res.appendChild(sumDiv); }catch(e){ const div=document.createElement('div'); div.className='result-item error'; div.innerHTML=`<strong>Error:</strong> ${e.message}`; res.appendChild(div); }finally{ startBtn.disabled=false; stopBtn.disabled=true; isSpraying=false; } }
         
-        async function checkAllPacks(){ const btn=document.getElementById('checkAllPacksBtn'); btn.disabled=true; btn.innerHTML='<span class="loading"></span> Checking...'; try{ const resp=await fetch('/api/proxy/packs'); if(!resp.ok)throw new Error(); const result=await resp.json(); if(!result.success||!result.data?.packs)throw new Error(); allPacks=result.data.packs; packGroups={}; allPacks.forEach(p=>{ const name=p.packTemplate?p.packTemplate.name:'Unknown Pack'; if(!packGroups[name])packGroups[name]=[]; packGroups[name].push(p); }); Object.keys(packGroups).forEach(k=>packGroups[k].sort((a,b)=>a.id-b.id)); const total=allPacks.length; document.getElementById('totalPacks').innerHTML=`<h3>Total Packs: <span class="pack-count">${total}</span></h3>`; let html='<h3>Packs by Type:</h3>'; Object.keys(packGroups).sort().forEach(name=>{ const safeId=`ids-${name.replace(/[^a-zA-Z0-9]/g,'-')}`; html+=`<div class="pack-group"><div class="pack-group-header" onclick="togglePackIds('${safeId}')"><span>${name}</span><span class="pack-count">${packGroups[name].length} packs</span></div><div id="${safeId}" class="ids-container">${packGroups[name].map(p=>`<span class="ids-row">${p.id}</span>`).join('')}</div></div>`; }); document.getElementById('packGroups').innerHTML=html; const select=document.getElementById('packGroupSelect'); select.innerHTML='<option value="">-- Select a pack type --</option>'; Object.keys(packGroups).sort().forEach(name=>{ const opt=document.createElement('option'); opt.value=name; opt.textContent=`${name} (${packGroups[name].length} packs)`; select.appendChild(opt); }); document.getElementById('packStatsContainer').style.display='block'; document.getElementById('openPacksSection').style.display='block'; }catch(e){ alert(`Error: ${e.message}`); }finally{ btn.disabled=false; btn.innerHTML='🔍 Check All Packs'; } }
-        window.togglePackIds=function(id){ const el=document.getElementById(id); if(el)el.classList.toggle('show'); };
+async function checkAllPacks(){ const btn=document.getElementById('checkAllPacksBtn'); btn.disabled=true; btn.innerHTML='<span class="loading"></span> Checking...'; try{ const resp=await fetch('/api/proxy/packs'); if(!resp.ok)throw new Error(); const result=await resp.json(); if(!result.success||!result.data?.packs)throw new Error(); allPacks=result.data.packs; packGroups={}; allPacks.forEach(p=>{ const name=p.packTemplate?p.packTemplate.name:'Unknown Pack'; if(!packGroups[name])packGroups[name]=[]; packGroups[name].push(p); }); Object.keys(packGroups).forEach(k=>packGroups[k].sort((a,b)=>a.id-b.id)); const total=allPacks.length; document.getElementById('totalPacks').innerHTML=`<h3>Total Packs: <span class="pack-count">${total}</span></h3>`; let html='<h3>Packs by Type:</h3>'; Object.keys(packGroups).sort().forEach(name=>{ const safeId=`ids-${name.replace(/[^a-zA-Z0-9]/g,'-')}`; html+=`<div class="pack-group"><div class="pack-group-header" onclick="togglePackIds('${safeId}')"><span>${name}</span><span class="pack-count">${packGroups[name].length} packs</span></div><div id="${safeId}" class="ids-container">${packGroups[name].map(p=>`<span class="ids-row">${p.id}</span>`).join('')}</div></div>`; }); document.getElementById('packGroups').innerHTML=html; const select=document.getElementById('packGroupSelect'); select.innerHTML='<option value="">-- Select a pack type --</option>'; Object.keys(packGroups).sort().forEach(name=>{ const opt=document.createElement('option'); opt.value=name; opt.textContent=`${name} (${packGroups[name].length} packs)`; select.appendChild(opt); }); document.getElementById('packStatsContainer').style.display='block'; document.getElementById('openPacksSection').style.display='block'; }catch(e){ alert(`Error: ${e.message}`); }finally{ btn.disabled=false; btn.innerHTML='🔍 Check All Packs'; } }
+window.togglePackIds=function(id){ const el=document.getElementById(id); if(el)el.classList.toggle('show'); };
         
-        async function openPacks(){ if(isOpeningPacks||selectedGroupPacks.length===0)return; const count=parseInt(document.getElementById('packsToOpen').value); if(isNaN(count)||count<1||count>selectedGroupPacks.length){ alert(`Enter 1-${selectedGroupPacks.length}`); return; } isOpeningPacks=true; stopRequested=false; const openBtn=document.getElementById('openPacksBtn'),stopBtn=document.getElementById('stopOpenPacksBtn'),prog=document.getElementById('packOpenProgress'),bar=document.getElementById('packOpenProgressBar'),res=document.getElementById('packResults'); openBtn.disabled=true; stopBtn.style.display='inline-block'; prog.style.display='block'; res.innerHTML=''; let opened=0; for(let i=0;i<count&&!stopRequested;i++){ const pack=selectedGroupPacks[i]; opened++; const pct=(opened/count)*100; bar.style.width=`${pct}%`; bar.textContent=`${Math.round(pct)}%`; try{ const resp=await fetch('/api/proxy/open-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({packId:pack.id})}); const result=await resp.json(); const div=document.createElement('div'); if(result.success){ div.className='result-item success'; let html=`<strong>Pack ${opened} (ID:${pack.id}):</strong> Opened<br>`; if(result.data.data?.cards?.length){ result.data.data.cards.forEach(c=>{ html+=`<div class="card-detail">• ${c.type} ${c.mintBatch}${c.mintNumber}</div>`; }); } if(result.data.data?.stickers?.length){ result.data.data.stickers.forEach(s=>{ html+=`<div class="card-detail">• ${s.type} ${s.mintBatch}${s.mintNumber}</div>`; }); } div.innerHTML=html; }else{ div.className='result-item error'; div.innerHTML=`<strong>Pack ${opened} (ID:${pack.id}):</strong> Failed to open`; } res.appendChild(div); }catch(e){ const div=document.createElement('div'); div.className='result-item error'; div.innerHTML=`<strong>Pack ${opened} (ID:${pack.id}):</strong> Error: ${e.message}`; res.appendChild(div); } await new Promise(r=>setTimeout(r,2700)); } selectedGroupPacks=selectedGroupPacks.slice(count); const selName=document.getElementById('packGroupSelect').value; if(selName&&packGroups[selName])packGroups[selName]=selectedGroupPacks; openBtn.disabled=false; stopBtn.style.display='none'; prog.style.display='none'; isOpeningPacks=false; }
+function updatePackGroupMax() {
+    const select = document.getElementById('packGroupSelect');
+    const selectedName = select.value;
+    const packInput = document.getElementById('packsToOpen');
+    if (selectedName && packGroups[selectedName]) {
+        const maxPacks = packGroups[selectedName].length;
+        packInput.max = maxPacks;
+        // Only set value if current value exceeds max or is empty
+        const currentVal = parseInt(packInput.value);
+        if (!currentVal || currentVal > maxPacks) {
+            packInput.value = maxPacks;
+        }
+    }
+}
         
-        async function startBrewing(){ if(isBrewing)return; isBrewing=true; const startBtn=document.getElementById('startBrewBtn'),stopBtn=document.getElementById('stopBrewBtn'),prog=document.getElementById('brewProgress'),stats=document.getElementById('brewStats'),resultsDiv=document.getElementById('brewResults'); startBtn.disabled=true; stopBtn.disabled=false; prog.style.display='block'; stats.style.display='grid'; const planId=document.getElementById('brewPlanId').value,silver=parseInt(document.getElementById('brewSilvercoins').value),minMint=parseInt(document.getElementById('brewMinMint').value),maxB=parseInt(document.getElementById('brewMaxBrews').value),delay=parseInt(document.getElementById('brewDelay').value); try{ const resp=await fetch('/api/brewing/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brewingPlanId:planId,silvercoins:silver,minMintNumber:minMint,maxBrews:maxB,operationDelay:delay})}); const data=await resp.json(); if(data.logs)data.logs.forEach(l=>{ const div=document.createElement('div'); div.className=`result-item ${l.type==='error'?'error':(l.type==='success'?'success':'warning')}`; div.innerHTML=`[${new Date(l.timestamp).toLocaleTimeString()}] ${l.message}`; resultsDiv.appendChild(div); }); document.getElementById('brewTotal').textContent=data.totalBrews||0; document.getElementById('brewSuccessful').textContent=data.successfulBrews||0; document.getElementById('brewCards').textContent=data.cardsReceived?.length||0; resultsDiv.scrollTop=resultsDiv.scrollHeight; }catch(e){ const div=document.createElement('div'); div.className='result-item error'; div.innerHTML=`Error: ${e.message}`; resultsDiv.appendChild(div); }finally{ prog.style.display='none'; startBtn.disabled=false; stopBtn.disabled=true; isBrewing=false; } }
-        async function stopBrewing(){ if(!isBrewing)return; try{ await fetch('/api/brewing/stop',{method:'POST'}); }catch(e){} }
-        function clearBrewLogs(){ document.getElementById('brewResults').innerHTML=''; document.getElementById('brewTotal').textContent='0'; document.getElementById('brewSuccessful').textContent='0'; document.getElementById('brewCards').textContent='0'; }
+async function openPacks(){ 
+    if(isOpeningPacks||selectedGroupPacks.length===0)return; 
+    const count=parseInt(document.getElementById('packsToOpen').value); 
+    const delayMs=parseInt(document.getElementById('packOpenDelay').value) || 2700;
+    if(isNaN(count)||count<1||count>selectedGroupPacks.length){ alert(`Enter 1-${selectedGroupPacks.length}`); return; } 
+    isOpeningPacks=true; stopRequested=false; 
+    const openBtn=document.getElementById('openPacksBtn'),stopBtn=document.getElementById('stopOpenPacksBtn'),prog=document.getElementById('packOpenProgress'),bar=document.getElementById('packOpenProgressBar'),res=document.getElementById('packResults'); 
+    openBtn.disabled=true; stopBtn.style.display='inline-block'; prog.style.display='block'; res.innerHTML=''; 
+    let opened=0; 
+    for(let i=0;i<count&&!stopRequested;i++){ 
+        const pack=selectedGroupPacks[i]; 
+        opened++; 
+        const pct=(opened/count)*100; 
+        bar.style.width=`${pct}%`; 
+        bar.textContent=`${Math.round(pct)}%`; 
+        try{ 
+            const resp=await fetch('/api/proxy/open-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({packId:pack.id})}); 
+            const result=await resp.json(); 
+            const div=document.createElement('div'); 
+            if(result.success){ 
+                div.className='result-item success'; 
+                let cards = [];
+                let cardStr = '';
+                if(result.data.data?.cards?.length){ 
+                    cards = result.data.data.cards.map(c => `${c.mintBatch || 'A'}${c.mintNumber || ''}`).filter(c => c);
+                    if (cards.length > 0) {
+                        cardStr = cards.join(', ');
+                    }
+                } 
+                if(result.data.data?.stickers?.length){ 
+                    const stickers = result.data.data.stickers.map(s => `${s.mintBatch || 'S'}${s.mintNumber || ''}`).filter(s => s);
+                    if (stickers.length > 0) {
+                        cardStr += (cardStr ? ', ' : '') + stickers.join(', ');
+                    }
+                }
+                div.innerHTML = `<strong>Pack ${opened} (ID:${pack.id}):</strong> <span class="compact-cards">${cardStr || 'Opened (no cards)'}</span>`;
+            }else{ 
+                div.className='result-item error'; 
+                div.innerHTML=`<strong>Pack ${opened} (ID:${pack.id}):</strong> Failed to open`; 
+            } 
+            res.appendChild(div); 
+        }catch(e){ 
+            const div=document.createElement('div'); 
+            div.className='result-item error'; 
+            div.innerHTML=`<strong>Pack ${opened} (ID:${pack.id}):</strong> Error: ${e.message}`; 
+            res.appendChild(div); 
+        } 
+        await new Promise(r=>setTimeout(r, delayMs)); 
+    } 
+    selectedGroupPacks=selectedGroupPacks.slice(count); 
+    const selName=document.getElementById('packGroupSelect').value; 
+    if(selName&&packGroups[selName])packGroups[selName]=selectedGroupPacks; 
+    openBtn.disabled=false; stopBtn.style.display='none'; prog.style.display='none'; isOpeningPacks=false; 
+    // Update the select option text to reflect remaining packs
+    if (selName && packGroups[selName]) {
+        const select = document.getElementById('packGroupSelect');
+        const opt = select.querySelector(`option[value="${selName}"]`);
+        if (opt) {
+            opt.textContent = `${selName} (${packGroups[selName].length} packs)`;
+        }
+        updatePackGroupMax();
+    }
+}
         
-        function addMarketLog(msg,type){ const c=document.getElementById('marketResults'); const div=document.createElement('div'); div.className=`result-item ${type}`; div.innerHTML=`[${new Date().toLocaleTimeString()}] ${msg}`; c.appendChild(div); c.scrollTop=c.scrollHeight; }
-        async function startMarketListings(){ if(isListing)return; const cardText=document.getElementById('cardIdsTextarea').value.trim(); if(!cardText){ alert('Enter Card IDs'); return; } const cardIds=cardText.split('\n').filter(l=>l.trim()).map(l=>l.trim()); if(cardIds.length===0){ alert('No valid Card IDs'); return; } const priceText=document.getElementById('pricesTextarea').value.trim(); let prices=priceText?priceText.split('\n').filter(l=>l.trim()).map(l=>l.trim()):[]; if(prices.length===0){ alert('Enter at least one price'); return; } const delay=parseInt(document.getElementById('marketDelayMs').value); const startBtn=document.getElementById('startMarketListingsBtn'),stopBtn=document.getElementById('stopMarketListingsBtn'),prog=document.getElementById('marketProgress'),bar=document.getElementById('marketProgressBar'),statsDiv=document.getElementById('marketStats'); startBtn.disabled=true; stopBtn.style.display='inline-block'; prog.style.display='block'; statsDiv.style.display='grid'; document.getElementById('marketResults').innerHTML=''; document.getElementById('marketIdsContainer').style.display='none'; isListing=true; stopListing=false; let processed=0,successful=0,failed=0; const marketIds=[]; for(let i=0;i<cardIds.length&&!stopListing;i++){ let price=prices[i]; if(!price&&prices.length>0)price=prices[prices.length-1]; processed++; const pct=(processed/cardIds.length)*100; bar.style.width=`${pct}%`; bar.textContent=`${Math.round(pct)}%`; document.getElementById('marketTotal').textContent=cardIds.length; document.getElementById('marketProcessed').textContent=processed; try{ const resp=await fetch('/api/market/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardIds:[cardIds[i]],prices:[price],delayMs:0})}); const data=await resp.json(); if(data.success&&data.marketIds&&data.marketIds.length>0){ successful++; marketIds.push(data.marketIds[0]); addMarketLog(`✅ Card ${cardIds[i]} listed for ${price} → Market ID: ${data.marketIds[0].marketId}`,'success'); }else{ failed++; addMarketLog(`❌ Card ${cardIds[i]} failed: ${data.error||'Unknown error'}`,'error'); } }catch(e){ failed++; addMarketLog(`❌ Card ${cardIds[i]} error: ${e.message}`,'error'); } document.getElementById('marketSuccessful').textContent=successful; document.getElementById('marketFailed').textContent=failed; if(i<cardIds.length-1&&!stopListing&&delay>0)await new Promise(r=>setTimeout(r,delay)); } if(marketIds.length>0){ document.getElementById('marketIdsContainer').style.display='block'; let listHtml=''; marketIds.forEach((item,idx)=>{ listHtml+=`${idx+1}. Card ${item.cardId} → Market ID: ${item.marketId} (${item.price})\n`; }); document.getElementById('marketIdList').innerHTML=`<pre style="margin:0;white-space:pre-wrap;">${listHtml}</pre>`; document.getElementById('copyMarketIdsBtn').style.display='inline-block'; } addMarketLog(`📊 Complete: ${successful} successful, ${failed} failed`,'info'); startBtn.disabled=false; stopBtn.style.display='none'; prog.style.display='none'; isListing=false; }
+async function startBrewing(){ if(isBrewing)return; isBrewing=true; const startBtn=document.getElementById('startBrewBtn'),stopBtn=document.getElementById('stopBrewBtn'),prog=document.getElementById('brewProgress'),stats=document.getElementById('brewStats'),resultsDiv=document.getElementById('brewResults'); startBtn.disabled=true; stopBtn.disabled=false; prog.style.display='block'; stats.style.display='grid'; const planId=document.getElementById('brewPlanId').value,silver=parseInt(document.getElementById('brewSilvercoins').value),minMint=parseInt(document.getElementById('brewMinMint').value),maxB=parseInt(document.getElementById('brewMaxBrews').value),delay=parseInt(document.getElementById('brewDelay').value); try{ const resp=await fetch('/api/brewing/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brewingPlanId:planId,silvercoins:silver,minMintNumber:minMint,maxBrews:maxB,operationDelay:delay})}); const data=await resp.json(); if(data.logs)data.logs.forEach(l=>{ const div=document.createElement('div'); div.className=`result-item ${l.type==='error'?'error':(l.type==='success'?'success':'warning')}`; div.innerHTML=`[${new Date(l.timestamp).toLocaleTimeString()}] ${l.message}`; resultsDiv.appendChild(div); }); document.getElementById('brewTotal').textContent=data.totalBrews||0; document.getElementById('brewSuccessful').textContent=data.successfulBrews||0; document.getElementById('brewCards').textContent=data.cardsReceived?.length||0; resultsDiv.scrollTop=resultsDiv.scrollHeight; }catch(e){ const div=document.createElement('div'); div.className='result-item error'; div.innerHTML=`Error: ${e.message}`; resultsDiv.appendChild(div); }finally{ prog.style.display='none'; startBtn.disabled=false; stopBtn.disabled=true; isBrewing=false; } }
+async function stopBrewing(){ if(!isBrewing)return; try{ await fetch('/api/brewing/stop',{method:'POST'}); }catch(e){} }
+function clearBrewLogs(){ document.getElementById('brewResults').innerHTML=''; document.getElementById('brewTotal').textContent='0'; document.getElementById('brewSuccessful').textContent='0'; document.getElementById('brewCards').textContent='0'; }
         
-        document.getElementById('refreshBtn').addEventListener('click',updateAll);
-        document.getElementById('refreshTokenBtn').addEventListener('click',async()=>{ await performAction('/api/refresh'); await updateAll(); });
-        document.getElementById('claimBtn').addEventListener('click',async()=>{ await performAction('/api/claim-achievements'); await updateAll(); });
-        document.getElementById('fundsBtn').addEventListener('click',async()=>{ await performAction('/api/check-funds'); await updateAll(); });
-        document.getElementById('scheduledSprayBtn').addEventListener('click',async()=>{ const sid=document.getElementById('sprayerId').value; await performAction('/api/scheduled-spray',{sprayerId:sid}); await updateAll(); });
-        document.getElementById('startSpraysBtn').addEventListener('click',()=>{ const c=parseInt(document.getElementById('sprayCount').value); if(c>0)executeMultipleSprays(c); else alert('Enter valid number'); });
-        document.getElementById('stopSpraysBtn').addEventListener('click',()=>{ isSpraying=false; });
-        document.getElementById('checkAllPacksBtn').addEventListener('click',checkAllPacks);
-        document.getElementById('openPacksBtn').addEventListener('click',()=>{ const sel=document.getElementById('packGroupSelect').value; if(sel&&packGroups[sel]){ selectedGroupPacks=[...packGroups[sel]]; if(document.getElementById('openOldestFirst').checked)selectedGroupPacks.sort((a,b)=>a.id-b.id); else selectedGroupPacks.sort((a,b)=>b.id-a.id); openPacks(); }else alert('Select a pack group'); });
-        document.getElementById('stopOpenPacksBtn').addEventListener('click',()=>{ stopRequested=true; isOpeningPacks=false; });
-        document.getElementById('startBrewBtn').addEventListener('click',startBrewing);
-        document.getElementById('stopBrewBtn').addEventListener('click',stopBrewing);
-        document.getElementById('clearBrewLogsBtn').addEventListener('click',clearBrewLogs);
-        document.getElementById('startMarketListingsBtn').addEventListener('click',startMarketListings);
-        document.getElementById('stopMarketListingsBtn').addEventListener('click',()=>{ stopListing=true; isListing=false; });
-        document.getElementById('copyMarketIdsBtn').addEventListener('click',()=>{ const text=document.getElementById('marketIdList').innerText; navigator.clipboard.writeText(text).then(()=>alert('Market IDs copied!')); });
-        document.getElementById('saveSprayerIdBtn').addEventListener('click',saveSprayerConfig);
-        document.getElementById('clearLogsBtn').addEventListener('click',()=>{ document.getElementById('activityLogs').innerHTML='<div class="log-entry">Logs cleared</div>'; });
-        document.getElementById('autoRefresh').addEventListener('change',(e)=>{ if(e.target.checked)refreshInterval=setInterval(updateAll,10000); else{ if(refreshInterval)clearInterval(refreshInterval); refreshInterval=null; } });
-        document.querySelectorAll('.tab-button').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active'); }); });
-        function updateMarketStats(){ const cardText=document.getElementById('cardIdsTextarea').value.trim(); const priceText=document.getElementById('pricesTextarea').value.trim(); const cardCount=cardText?cardText.split('\n').filter(l=>l.trim()).length:0; const priceCount=priceText?priceText.split('\n').filter(l=>l.trim()).length:0; document.getElementById('cardIdsCount').textContent=`${cardCount} IDs`; document.getElementById('pricesCount').textContent=`${priceCount} prices`; const statusDiv=document.getElementById('marketMatchStatus'); if(cardCount>0){ if(priceCount===0){ statusDiv.style.display='block'; statusDiv.className='match-status match-warning'; statusDiv.innerHTML='⚠️ No prices provided'; }else if(priceCount<cardCount){ statusDiv.style.display='block'; statusDiv.className='match-status match-warning'; statusDiv.innerHTML=`⚠️ Only ${priceCount} price(s) for ${cardCount} cards. Last price will repeat.`; }else{ statusDiv.style.display='block'; statusDiv.className='match-status match-success'; statusDiv.innerHTML='✅ Prices match card count'; } }else{ statusDiv.style.display='none'; } }
-        document.getElementById('cardIdsTextarea').addEventListener('input',updateMarketStats);
-        document.getElementById('pricesTextarea').addEventListener('input',updateMarketStats);
+function addMarketLog(msg,type){ const c=document.getElementById('marketResults'); const div=document.createElement('div'); div.className=`result-item ${type}`; div.innerHTML=`[${new Date().toLocaleTimeString()}] ${msg}`; c.appendChild(div); c.scrollTop=c.scrollHeight; }
+async function startMarketListings(){ if(isListing)return; const cardText=document.getElementById('cardIdsTextarea').value.trim(); if(!cardText){ alert('Enter Card IDs'); return; } const cardIds=cardText.split('\n').filter(l=>l.trim()).map(l=>l.trim()); if(cardIds.length===0){ alert('No valid Card IDs'); return; } const priceText=document.getElementById('pricesTextarea').value.trim(); let prices=priceText?priceText.split('\n').filter(l=>l.trim()).map(l=>l.trim()):[]; if(prices.length===0){ alert('Enter at least one price'); return; } const delay=parseInt(document.getElementById('marketDelayMs').value); const startBtn=document.getElementById('startMarketListingsBtn'),stopBtn=document.getElementById('stopMarketListingsBtn'),prog=document.getElementById('marketProgress'),bar=document.getElementById('marketProgressBar'),statsDiv=document.getElementById('marketStats'); startBtn.disabled=true; stopBtn.style.display='inline-block'; prog.style.display='block'; statsDiv.style.display='grid'; document.getElementById('marketResults').innerHTML=''; document.getElementById('marketIdsContainer').style.display='none'; isListing=true; stopListing=false; let processed=0,successful=0,failed=0; const marketIds=[]; for(let i=0;i<cardIds.length&&!stopListing;i++){ let price=prices[i]; if(!price&&prices.length>0)price=prices[prices.length-1]; processed++; const pct=(processed/cardIds.length)*100; bar.style.width=`${pct}%`; bar.textContent=`${Math.round(pct)}%`; document.getElementById('marketTotal').textContent=cardIds.length; document.getElementById('marketProcessed').textContent=processed; try{ const resp=await fetch('/api/market/list',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardIds:[cardIds[i]],prices:[price],delayMs:0})}); const data=await resp.json(); if(data.success&&data.marketIds&&data.marketIds.length>0){ successful++; marketIds.push(data.marketIds[0]); addMarketLog(`✅ Card ${cardIds[i]} listed for ${price} → Market ID: ${data.marketIds[0].marketId}`,'success'); }else{ failed++; addMarketLog(`❌ Card ${cardIds[i]} failed: ${data.error||'Unknown error'}`,'error'); } }catch(e){ failed++; addMarketLog(`❌ Card ${cardIds[i]} error: ${e.message}`,'error'); } document.getElementById('marketSuccessful').textContent=successful; document.getElementById('marketFailed').textContent=failed; if(i<cardIds.length-1&&!stopListing&&delay>0)await new Promise(r=>setTimeout(r,delay)); } if(marketIds.length>0){ document.getElementById('marketIdsContainer').style.display='block'; let listHtml=''; marketIds.forEach((item,idx)=>{ listHtml+=`${idx+1}. Card ${item.cardId} → Market ID: ${item.marketId} (${item.price})\n`; }); document.getElementById('marketIdList').innerHTML=`<pre style="margin:0;white-space:pre-wrap;">${listHtml}</pre>`; document.getElementById('copyMarketIdsBtn').style.display='inline-block'; } addMarketLog(`📊 Complete: ${successful} successful, ${failed} failed`,'info'); startBtn.disabled=false; stopBtn.style.display='none'; prog.style.display='none'; isListing=false; }
         
-        loadSprayerConfig();
-        updateAll();
-        refreshInterval=setInterval(updateAll,10000);
-        updateMarketStats();
+document.getElementById('refreshBtn').addEventListener('click',updateAll);
+document.getElementById('refreshTokenBtn').addEventListener('click',async()=>{ await performAction('/api/refresh'); await updateAll(); });
+document.getElementById('claimBtn').addEventListener('click',async()=>{ await performAction('/api/claim-achievements'); await updateAll(); });
+document.getElementById('fundsBtn').addEventListener('click',async()=>{ await performAction('/api/check-funds'); await updateAll(); });
+document.getElementById('scheduledSprayBtn').addEventListener('click',async()=>{ const sid=document.getElementById('sprayerId').value; await performAction('/api/scheduled-spray',{sprayerId:sid}); await updateAll(); });
+document.getElementById('startSpraysBtn').addEventListener('click',()=>{ const c=parseInt(document.getElementById('sprayCount').value); if(c>0)executeMultipleSprays(c); else alert('Enter valid number'); });
+document.getElementById('stopSpraysBtn').addEventListener('click',()=>{ isSpraying=false; });
+document.getElementById('checkAllPacksBtn').addEventListener('click',checkAllPacks);
+document.getElementById('openPacksBtn').addEventListener('click',()=>{ const sel=document.getElementById('packGroupSelect').value; if(sel&&packGroups[sel]){ selectedGroupPacks=[...packGroups[sel]]; if(document.getElementById('openOldestFirst').checked)selectedGroupPacks.sort((a,b)=>a.id-b.id); else selectedGroupPacks.sort((a,b)=>b.id-a.id); openPacks(); }else alert('Select a pack group'); });
+document.getElementById('stopOpenPacksBtn').addEventListener('click',()=>{ stopRequested=true; isOpeningPacks=false; });
+document.getElementById('startBrewBtn').addEventListener('click',startBrewing);
+document.getElementById('stopBrewBtn').addEventListener('click',stopBrewing);
+document.getElementById('clearBrewLogsBtn').addEventListener('click',clearBrewLogs);
+document.getElementById('startMarketListingsBtn').addEventListener('click',startMarketListings);
+document.getElementById('stopMarketListingsBtn').addEventListener('click',()=>{ stopListing=true; isListing=false; });
+document.getElementById('copyMarketIdsBtn').addEventListener('click',()=>{ const text=document.getElementById('marketIdList').innerText; navigator.clipboard.writeText(text).then(()=>alert('Market IDs copied!')); });
+document.getElementById('saveSprayerIdBtn').addEventListener('click',saveSprayerConfig);
+document.getElementById('clearLogsBtn').addEventListener('click',()=>{ document.getElementById('activityLogs').innerHTML='<div class="log-entry">Logs cleared</div>'; });
+document.getElementById('autoRefresh').addEventListener('change',(e)=>{ if(e.target.checked)refreshInterval=setInterval(updateAll,10000); else{ if(refreshInterval)clearInterval(refreshInterval); refreshInterval=null; } });
+document.getElementById('packGroupSelect').addEventListener('change', function() {
+    // Update selected group
+    const selectedName = this.value;
+    if (selectedName && packGroups[selectedName]) {
+        selectedGroupPacks = [...packGroups[selectedName]];
+        updatePackGroupMax();
+    } else {
+        selectedGroupPacks = [];
+    }
+});
+// Also update when checkbox changes (resort)
+document.getElementById('openOldestFirst').addEventListener('change', function() {
+    const selectedName = document.getElementById('packGroupSelect').value;
+    if (selectedName && packGroups[selectedName]) {
+        selectedGroupPacks = [...packGroups[selectedName]];
+        if (this.checked) {
+            selectedGroupPacks.sort((a, b) => a.id - b.id);
+        } else {
+            selectedGroupPacks.sort((a, b) => b.id - a.id);
+        }
+    }
+});
+
+// Background spray controls
+document.getElementById('stopBgSprayBtn').addEventListener('click', async () => {
+    try {
+        await performAction('/api/spray/stop');
+        isBgRunning = false;
+        updateBgStatus();
+        await updateAll();
+    } catch(e) {
+        alert('Failed to stop background spray: ' + e.message);
+    }
+});
+
+document.getElementById('startBgSprayBtn').addEventListener('click', async () => {
+    try {
+        await performAction('/api/spray/start');
+        isBgRunning = true;
+        updateBgStatus();
+        await updateAll();
+    } catch(e) {
+        alert('Failed to start background spray: ' + e.message);
+    }
+});
+
+document.querySelectorAll('.tab-button').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active'); }); });
+function updateMarketStats(){ const cardText=document.getElementById('cardIdsTextarea').value.trim(); const priceText=document.getElementById('pricesTextarea').value.trim(); const cardCount=cardText?cardText.split('\n').filter(l=>l.trim()).length:0; const priceCount=priceText?priceText.split('\n').filter(l=>l.trim()).length:0; document.getElementById('cardIdsCount').textContent=`${cardCount} IDs`; document.getElementById('pricesCount').textContent=`${priceCount} prices`; const statusDiv=document.getElementById('marketMatchStatus'); if(cardCount>0){ if(priceCount===0){ statusDiv.style.display='block'; statusDiv.className='match-status match-warning'; statusDiv.innerHTML='⚠️ No prices provided'; }else if(priceCount<cardCount){ statusDiv.style.display='block'; statusDiv.className='match-status match-warning'; statusDiv.innerHTML=`⚠️ Only ${priceCount} price(s) for ${cardCount} cards. Last price will repeat.`; }else{ statusDiv.style.display='block'; statusDiv.className='match-status match-success'; statusDiv.innerHTML='✅ Prices match card count'; } }else{ statusDiv.style.display='none'; } }
+document.getElementById('cardIdsTextarea').addEventListener('input',updateMarketStats);
+document.getElementById('pricesTextarea').addEventListener('input',updateMarketStats);
+        
+loadSprayerConfig();
+updateAll();
+refreshInterval=setInterval(updateAll,10000);
+updateMarketStats();
     </script>
 </body>
 </html>

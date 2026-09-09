@@ -10,7 +10,7 @@ const CONFIG_FILE = path.join(__dirname, 'saved_config.json');
 
 // Load saved configuration
 let savedConfig = {
-  sprayerId: 6997
+  sprayerId: 7030  // Changed default to 7030
 };
 
 try {
@@ -134,7 +134,11 @@ let userData = {
   _effectiveEndUTC: null,
   _startJitterMin: 0,
   _achTimers: [],
-  _dailyRolloverTimer: null
+  _dailyRolloverTimer: null,
+  
+  // Spray control
+  _sprayInterval: null,
+  _sprayRunning: false
 };
 
 // Debug logs storage
@@ -173,7 +177,7 @@ function getCurrentSprayerId() {
 
 // Update sprayer ID
 function updateSprayerId(newId) {
-  savedConfig.sprayerId = parseInt(newId) || 6997;
+  savedConfig.sprayerId = parseInt(newId) || 7030;
   saveConfigToFile();
   return savedConfig.sprayerId;
 }
@@ -579,7 +583,9 @@ async function executeScheduledSpray(sprayerId) {
     return null;
   }
 
-  logActivity(`🎰 Executing scheduled free spray with sprayerId: ${sprayerId}...`);
+  // Use provided sprayerId or get from config
+  const effectiveSprayerId = sprayerId || getCurrentSprayerId();
+  logActivity(`🎰 Executing scheduled free spray with sprayerId: ${effectiveSprayerId}...`);
 
   try {
     const headers = {
@@ -587,7 +593,7 @@ async function executeScheduledSpray(sprayerId) {
       'Content-Type': 'application/json'
     };
 
-    const sprayResult = await makeAPIRequest(CONFIG.URL_SPRAY, 'POST', headers, { spinnerId: parseInt(sprayerId) });
+    const sprayResult = await makeAPIRequest(CONFIG.URL_SPRAY, 'POST', headers, { spinnerId: parseInt(effectiveSprayerId) });
 
     if (!sprayResult.success) {
       if (sprayResult.status === 401) {
@@ -627,7 +633,8 @@ async function executeManualSpray(sprayerId) {
     return { success: false, error: 'No JWT token available' };
   }
 
-  logActivity(`🎰 Starting manual spray process with sprayerId: ${sprayerId}...`);
+  const effectiveSprayerId = sprayerId || getCurrentSprayerId();
+  logActivity(`🎰 Starting manual spray process with sprayerId: ${effectiveSprayerId}...`);
 
   try {
     const headers = {
@@ -644,7 +651,7 @@ async function executeManualSpray(sprayerId) {
         logActivity('JWT expired during sprayer check, attempting refresh...');
         const refreshSuccess = await refreshToken();
         if (refreshSuccess) {
-          return await executeManualSpray(sprayerId);
+          return await executeManualSpray(effectiveSprayerId);
         }
       }
       return { success: false, error: `Sprayer check failed: ${sprayerUserResult.error}` };
@@ -675,7 +682,7 @@ async function executeManualSpray(sprayerId) {
     // 3. Now execute the spray
     const sprayUrl = `${CONFIG.URL_SPRAYER}/spin?categoryId=1`;
     const sprayResult = await makeAPIRequest(sprayUrl, 'POST', headers, {
-      spinnerId: parseInt(sprayerId)
+      spinnerId: parseInt(effectiveSprayerId)
     });
 
     if (!sprayResult.success) {
@@ -697,8 +704,8 @@ async function executeManualSpray(sprayerId) {
   }
 }
 
-// Execute multiple sprays
-async function executeMultipleSprays(count, sprayerId) {
+// Execute multiple sprays with configurable delay
+async function executeMultipleSprays(count, sprayerId, delayMs = 2700) {
   const results = [];
   let successful = 0;
   let failed = 0;
@@ -707,6 +714,12 @@ async function executeMultipleSprays(count, sprayerId) {
   const initialFunds = await checkFunds();
   
   for (let i = 0; i < count; i++) {
+    // Check if stop requested
+    if (!userData._sprayRunning) {
+      logActivity('⏹️ Spray process stopped by user');
+      break;
+    }
+    
     try {
       logActivity(`🔄 Manual spray ${i + 1}/${count} starting...`);
       const result = await executeManualSpray(sprayerId);
@@ -725,8 +738,8 @@ async function executeMultipleSprays(count, sprayerId) {
       }
       
       // Add delay between sprays
-      if (i < count - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2700));
+      if (i < count - 1 && userData._sprayRunning) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
       
     } catch (error) {
@@ -1362,15 +1375,24 @@ function scheduleDailyPlan() {
   logActivity(`⏰ Daily rollover scheduled for ${rolloverTime.toUTCString()}`);
 }
 
-// Continuous operations
-function startContinuousOperations(sprayerId) {
+// Continuous operations - FIXED to always use current sprayerId
+function startContinuousOperations() {
   console.log('🚀 Starting continuous operations...');
   
+  // Clear existing interval if any
+  if (userData._sprayInterval) {
+    clearInterval(userData._sprayInterval);
+    userData._sprayInterval = null;
+  }
+  
+  userData._sprayRunning = true;
+  
   // Spray operations - check every 30 seconds
-  setInterval(async () => {
-    if (userData.isActive && isWithinActiveWindow()) {
+  userData._sprayInterval = setInterval(async () => {
+    if (userData._sprayRunning && userData.isActive && isWithinActiveWindow()) {
       if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
-        await executeScheduledSpray(sprayerId);
+        // Always use current sprayerId from config
+        await executeScheduledSpray(getCurrentSprayerId());
       }
     }
   }, 30000);
@@ -1383,10 +1405,21 @@ function startContinuousOperations(sprayerId) {
   }, 5 * 60 * 60 * 1000);
 }
 
+// Stop continuous operations
+function stopContinuousOperations() {
+  userData._sprayRunning = false;
+  if (userData._sprayInterval) {
+    clearInterval(userData._sprayInterval);
+    userData._sprayInterval = null;
+    logActivity('⏹️ Continuous spray operations stopped');
+  }
+}
+
 // Initialize the spray service
 async function initialize() {
   try {
     console.log('🚀 INITIALIZING SPRAYER SERVICE...');
+    console.log(`🎯 Using sprayer ID: ${getCurrentSprayerId()}`);
     
     // Refresh token
     await refreshToken();
@@ -1401,8 +1434,8 @@ async function initialize() {
       // Check funds
       checkFunds();
       
-      // Start continuous operations - use saved sprayerId
-      startContinuousOperations(getCurrentSprayerId());
+      // Start continuous operations - always uses current sprayerId
+      startContinuousOperations();
     }, 60000);
     
     console.log('✅ Sprayer service initialized successfully');
@@ -1419,6 +1452,7 @@ function getUserData() {
   const safeData = { ...userData };
   delete safeData._achTimers;
   delete safeData._dailyRolloverTimer;
+  delete safeData._sprayInterval;
   
   // Convert dates to ISO strings
   if (safeData._effectiveStartUTC instanceof Date) {
@@ -1453,7 +1487,8 @@ app.use(express.json());
 app.get('/api/user', (req, res) => {
   const safeData = getUserData();
   safeConfigData = {
-    sprayerId: getCurrentSprayerId()
+    sprayerId: getCurrentSprayerId(),
+    sprayRunning: userData._sprayRunning
   };
   res.json({ ...safeData, config: safeConfigData });
 });
@@ -1475,7 +1510,8 @@ app.get('/api/debug-logs', (req, res) => {
 // Get current config
 app.get('/api/config', (req, res) => {
   res.json({
-    sprayerId: getCurrentSprayerId()
+    sprayerId: getCurrentSprayerId(),
+    sprayRunning: userData._sprayRunning
   });
 });
 
@@ -1487,6 +1523,7 @@ app.post('/api/config/sprayer-id', (req, res) => {
   }
   
   const newId = updateSprayerId(sprayerId);
+  console.log(`🔄 Sprayer ID updated to: ${newId}`);
   res.json({ success: true, sprayerId: newId });
 });
 
@@ -1512,6 +1549,21 @@ app.post('/api/check-funds', async (req, res) => {
   res.json({ success: funds !== null, funds });
 });
 
+// Control background spray
+app.post('/api/spray/stop', (req, res) => {
+  stopContinuousOperations();
+  res.json({ success: true, message: 'Spray operations stopped' });
+});
+
+app.post('/api/spray/start', (req, res) => {
+  if (!userData._sprayRunning) {
+    startContinuousOperations();
+    res.json({ success: true, message: 'Spray operations started' });
+  } else {
+    res.json({ success: false, message: 'Spray operations already running' });
+  }
+});
+
 // Manual spray endpoint with buy spray logic
 app.post('/api/proxy/manual-spray', async (req, res) => {
   try {
@@ -1526,11 +1578,11 @@ app.post('/api/proxy/manual-spray', async (req, res) => {
   }
 });
 
-// Multiple manual sprays
+// Multiple manual sprays with configurable delay
 app.post('/api/proxy/multiple-sprays', async (req, res) => {
   try {
-    const { count = 1, sprayerId = getCurrentSprayerId() } = req.body;
-    const results = await executeMultipleSprays(count, sprayerId);
+    const { count = 1, sprayerId = getCurrentSprayerId(), delayMs = 2700 } = req.body;
+    const results = await executeMultipleSprays(count, sprayerId, delayMs);
     res.json(results);
   } catch (error) {
     res.status(500).json({ 
@@ -1624,7 +1676,7 @@ app.get('/api/packs/:packId', async (req, res) => {
     }
 
     const headers = { 'x-user-jwt': userData.jwtToken };
-const url = `${CONFIG.URL_DROP}/${packId}`;
+    const url = `${CONFIG.URL_DROP}/${packId}`;
     
     const result = await makeAPIRequest(url, 'GET', headers);
     
