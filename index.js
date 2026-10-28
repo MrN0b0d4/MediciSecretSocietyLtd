@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // ====================== PERSISTENT CONFIG =======================
 const CONFIG_FILE = path.join(__dirname, 'saved_config.json');
-let savedConfig = { sprayerId: 6997 };
+let savedConfig = { sprayerId: 7096 };
 try {
   if (fs.existsSync(CONFIG_FILE)) {
     savedConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
@@ -164,7 +164,7 @@ function saveConfigToFile() {
 }
 function getCurrentSprayerId() { return savedConfig.sprayerId; }
 function updateSprayerId(newId) {
-  savedConfig.sprayerId = parseInt(newId) || 6997;
+  savedConfig.sprayerId = parseInt(newId) || 7096;
   saveConfigToFile();
   return savedConfig.sprayerId;
 }
@@ -829,11 +829,13 @@ function scheduleDailyPlan() {
   logActivity(`⏰ Daily rollover → ${rolloverTime.toUTCString()}`);
 }
 
-function startContinuousOperations(sprayerId) {
+// >>> FIX: do NOT capture sprayerId in a closure. Read the live value each tick.
+function startContinuousOperations() {
   setInterval(async () => {
     if (userData.isActive && isWithinActiveWindow()) {
       if (!userData.nextSprayTime || new Date() >= new Date(userData.nextSprayTime)) {
-        await executeScheduledSpray(sprayerId);
+        // getCurrentSprayerId() returns the latest saved value every time
+        await executeScheduledSpray(getCurrentSprayerId());
       }
     }
   }, 30000);
@@ -850,7 +852,7 @@ async function initialize() {
       logActivity('🚀 Starting operations');
       scheduleDailyPlan();
       checkFunds();
-      startContinuousOperations(getCurrentSprayerId());
+      startContinuousOperations();
     }, 60000);
   } catch (e) { console.error('❌ Init failed:', e); }
 }
@@ -886,7 +888,9 @@ app.get('/api/config', (req, res) => res.json({ sprayerId: getCurrentSprayerId()
 app.post('/api/config/sprayer-id', (req, res) => {
   const { sprayerId } = req.body;
   if (sprayerId === undefined || isNaN(parseInt(sprayerId))) return res.status(400).json({ success: false, error: 'Invalid ID' });
-  res.json({ success: true, sprayerId: updateSprayerId(sprayerId) });
+  const updated = updateSprayerId(sprayerId);
+  logActivity(`⚙️ Sprayer ID updated to ${updated} (will be used for all future scheduled sprays)`);
+  res.json({ success: true, sprayerId: updated });
 });
 
 // Manual triggers

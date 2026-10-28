@@ -156,12 +156,23 @@ textarea { resize:vertical;font-family:monospace; }
       <div class="card-content">
         <div class="info-grid">
           <div class="info-label">Total Sprays:</div><div class="info-value" id="totalSprays">0</div>
-          <div class="info-label">Achievements Claimed:</div><div class="info-value" id="achievementsClaimed">0</div>
-          <div class="info-label">Funds:</div><div class="info-value" id="currentFunds">0</div>
-          <div class="info-label">ETH:</div><div class="info-value" id="currentEth">—</div>
-          <div class="info-label">SEK:</div><div class="info-value" id="currentSek">—</div>
-          <div class="info-label">Funds Checks Today:</div><div class="info-value" id="fundsChecks">0</div>
-          <div class="info-label">Next Spray:</div><div class="info-value"><div class="time-display" id="nextSprayTime">—</div><div id="nextSprayCountdown" style="font-size:11px;color:var(--muted);"></div></div>
+          <div class="info-label">A4iv Claimed / Fund chk:</div>
+		  <div class="info-value">
+			<span id="achievementsClaimed">0</span>
+			            <span style="color:var(--muted);margin:0 6px;">·</span>
+
+			<span id="fundsChecks">0</span>
+			
+			</div>
+          <div class="info-label">Spray / ETH / SEK</div>
+          <div class="info-value">
+            <span id="currentFunds" >0</span>
+            <span style="color:var(--muted);margin:0 6px;">·</span>
+            <span id="currentEth" style="font-weight:700;">—</span>
+            <span style="color:var(--muted);margin:0 6px;">·</span>
+            <span id="currentSek">—</span>
+          </div>
+          <div class="info-label">Next Spray:</div><div class="info-value"><div class="time-display" id="nextSprayTime">—</div><div id="nextSprayCountdown" style="font-size:10px;color:var(--muted);"></div></div>
         </div>
       </div>
     </div>
@@ -177,7 +188,7 @@ textarea { resize:vertical;font-family:monospace; }
       <div class="card-content">
         <div class="sprayer-id-input">
           <label for="sprayerId">Sprayer ID:</label>
-          <input type="number" id="sprayerId" min="1" value="6997">
+          <input type="number" id="sprayerId" min="1" value="7096">
           <button class="btn btn-primary" id="saveSprayerIdBtn">💾 Save</button>
         </div>
         <div id="configSaveStatus" style="font-size:11px;margin-top:8px;color:var(--success);display:none;">✓ saved!</div>
